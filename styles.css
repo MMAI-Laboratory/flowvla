@@ -849,13 +849,15 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
   .full-page{--heading-index-width:2rem;--heading-index-gap:var(--space-2)}
 }
 
-/* Result values share one alignment; descriptive row labels remain left aligned. */
-.full-page :is(.benchmark-table,.result-table) thead th:not(:first-child),
-.full-page :is(.benchmark-table,.result-table,.task-matrix) tbody td{
+/* Only the explicitly named Method column is exempt from centered alignment. */
+.full-page :is(.benchmark-table,.result-table,.task-matrix) :is(th,td):not(.method-column){
   text-align:center;
 }
-.full-page :is(.benchmark-table,.result-table) thead th:first-child,
-.full-page :is(.benchmark-table,.result-table,.task-matrix) tbody th[scope="row"]{
+.full-page :is(.benchmark-table,.result-table,.task-matrix) th:first-child:not(.method-column),
+.full-page .task-matrix th.model-heading{
+  padding-inline:var(--cell-inline);
+}
+.full-page :is(.benchmark-table,.result-table) .method-column{
   text-align:left;
 }
 

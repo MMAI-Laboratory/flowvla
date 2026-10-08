@@ -17,7 +17,7 @@ The previous broad source-support check did not establish that every omitted qua
 ## UI and validation
 
 - Paper, Code and BibTeX have consistent icon buttons. Coming soon appears below Paper and Code, outside their clickable surfaces, and is associated through accessible descriptions. Paper remains unavailable until an arXiv URL exists; Code opens the repository.
-- Numeric columns and their headers are centered; descriptive method/model/configuration/condition labels retain their left alignment. All six tables have a closing rule independent of source-footer presence.
+- Only columns explicitly named Method remain left-aligned. Every other column, including Model, Configuration, Condition and Supervision signal, centers its header and values. Non-Method label cells use symmetric horizontal padding. All six tables have a closing rule independent of source-footer presence.
 - Task-category headings have a 12-pixel gap before the images and less padding above. Instructions share a centered 68-character maximum measure. On the wide layout, the Cup & Plush instruction wraps into two lines instead of spanning the full 960-pixel column.
 - Actual browser inspection at 1843, 390 and 320 CSS-pixel widths found no page overflow, clipping or console errors in the changed layouts. At 320 pixels, all three hero buttons remain on one row, each 48 pixels high, with the two availability notes below.
 - Static validation confirms the reviewed copy is rendered, IDs are unique, accessibility references resolve, and all scientific table values and retained assets match the previous release. The playback/navigation JavaScript is byte-identical; the full prior playback regression suite was not repeated for these HTML/CSS changes.
