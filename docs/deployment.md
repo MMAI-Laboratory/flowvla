@@ -8,7 +8,7 @@ The project is hosted by the public `MMAI-Laboratory/projectpages` repository at
 
 GitHub project Pages uses the repository name as the URL prefix. The `flowvla/index.html` directory supplies the project path. Use the canonical trailing slash in links and metadata; keep CSS, JavaScript, paper, image, and video paths relative so the repository prefix is preserved.
 
-The intended Pages configuration is **Deploy from a branch → main → / (root)**. The root `.nojekyll` serves the checked-in static files directly. No framework build, custom domain, `CNAME`, or separate deployment branch is required in this repository. Enable Pages after the reviewed bundle has been committed and pushed; repository creation alone does not publish the site.
+The active Pages configuration is **Deploy from a branch → main → / (root)**. The root `.nojekyll` serves the checked-in static files directly. No framework build, custom domain, `CNAME`, or separate deployment branch is required in this repository. Pages was enabled after the reviewed bundle was committed and pushed.
 
 The existing lab homepage is a separate React/Vite static site. Its `main` workflow builds `dist` and replaces `gh-pages`; an edit made directly to that branch would be overwritten. Integrating a static project into that repository would require `public/projectpages/flowvla/` in its source and a homepage release. This dedicated project repository produces the requested URL without altering the homepage or depending on write access to it.
 
@@ -50,7 +50,9 @@ The reviewed single-page content manifest contains **53 files totaling 92,890,81
 
 Source provenance is retained here without adding labels to the rendered page: LIBERO's Seer rows use the supplied author response, page 1, items 1–2; its π₀.₅ results use paper Table 1. LIBERO-Plus uses Table 2, ablations use Tables 3–4, and real-world tasks and variations use Tables 5–6. Additional-backbone results use the response's item 8; point-composition analysis uses its 3D object points discussion. Method excerpts come from paper pages 3–5. Previously established author metadata is retained separately; the anonymous manuscript does not independently verify it.
 
-**Deployment and live verification remain pending.** After publishing, verify the canonical public URL, paper and media responses, page behavior, and the actual Pages deployment commit. Record that commit and any limitations here. Local audit success or a completed push alone is not confirmation of a live deployment.
+**Initial publication verified on 2026-10-08.** GitHub Pages reported `built` for release commit `20413d6459be07c880388dc069e1261f52dcd37b`. The canonical URL returned HTTP 200 and the address without a trailing slash redirected to it. All 53 published files passed response checks; the HTML, CSS, JavaScript, and paper PDF matched the reviewed SHA-256 hashes. Every MP4 returned HTTP 206 with the expected 1,024-byte range and total size. Image response sizes matched the manifest.
+
+The public page was opened in a browser. The Basketball viewpoint pair played together from the official URL; Stop paused and reset both videos to zero, with no media errors or horizontal overflow. The single-page navigation and manuscript text rendered at the official path. A local publication receipt and screenshot retain this evidence. Later documentation-only commits do not change the reviewed page or asset bytes.
 
 ## Rollback
 
