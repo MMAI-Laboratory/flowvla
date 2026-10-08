@@ -65,7 +65,9 @@ The former public page was opened in a browser. The Basketball viewpoint pair pl
 
 ## Current publication status
 
-**Publication and live verification at `/flowvla/` are pending.** Verify that relocation changes only canonical URL metadata in the HTML and preserves all other content, code, and asset bytes. After publication, record the deployment commit, public response/hash checks, trailing-slash behavior, fragment navigation, and actual playback at the new address. After replacing the old entry page, verify its redirect and direct media compatibility separately.
+**Publication at `/flowvla/` verified on 2026-10-08.** Pages reported `built` for commit `8d034db606dedcf699f49f3e7aa872243abe00d6`. Preservation checks confirmed exactly five URL substitutions in the HTML (65 fewer bytes) and all 52 supporting files byte-identical to the prior baseline. All 123 relative HTML references and internal anchors resolve.
+
+All 53 files passed public response checks at the new address. HTML, CSS, JavaScript and PDF hashes matched; every MP4 returned the expected byte range. The address without a trailing slash redirected to `/flowvla/`. The `#comparisons` link loaded its section, and the Cup & Plush pair actually played from new media URLs; Stop paused and reset both. No media error occurred. The old entry redirect is managed separately by `MMAI-Laboratory/projectpages`, commit `0fc2adc`, after this successful verification; its final public checks belong in the migration receipt.
 
 ## Rollback
 
