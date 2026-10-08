@@ -35,6 +35,7 @@
   --text-group-title:var(--text-body);
   --text-media-title:var(--text-body-sm);
   --text-table-title:var(--text-body-sm);
+  --text-result-value:1.375rem;
   --text-media-meta:var(--text-meta);
   --weight-regular:400;
   --weight-medium:500;
@@ -206,6 +207,9 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .responsive-figure .rf-crop{display:block;position:relative;overflow:hidden;aspect-ratio:var(--rf-ratio);min-width:0;background:white}
 .responsive-figure .rf-crop>img{position:absolute;inset:auto;left:var(--rf-image-left);top:var(--rf-image-top);width:var(--rf-image-width);max-width:none;height:auto}
 .responsive-figure .rf-figure-instruction{padding:12px 12px 4px;color:var(--ink);font-size:var(--text-meta);line-height:1.5;text-align:left}
+.full-page .responsive-figure>.rf-figure-footer{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2) var(--space-4)}
+.responsive-figure .rf-caption-text{flex:1 1 24rem;min-width:0}
+.responsive-figure .rf-figure-source{flex:0 0 auto;margin-left:auto;white-space:nowrap;font-size:var(--text-meta);font-weight:var(--weight-medium);line-height:1.5}
 .rf-reconstruction-sheet:hover{text-decoration:none}
 .rf-reconstruction-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:12px;align-items:center}
 .rf-reconstruction-grid>.rf-crop{width:100%}
@@ -457,9 +461,18 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page .section-intro+.result-block{margin-top:0;padding-top:0}
 .full-page .research-figure,.full-page .media-gallery{margin-top:var(--space-4)}
 .full-page .research-figure figcaption{padding:var(--media-inset);font-size:var(--text-caption);line-height:1.5}
-.full-page :is(.task-heading,.aggregation-group-heading){
+.full-page .aggregation-group-heading{
   max-width:880px;margin:0 auto var(--space-4);padding:0 0 var(--space-4);
   border-bottom:1px solid var(--line);text-align:center;
+}
+.full-page .task-heading{
+  display:grid;grid-template-columns:minmax(0,14rem) minmax(0,1fr);align-items:center;
+  column-gap:var(--space-5);max-width:880px;margin:0 auto var(--space-5);
+  padding:var(--space-4);border:0;border-left:3px solid var(--line-strong);
+  background:var(--soft);text-align:left;
+}
+@media(max-width:599px){
+  .full-page .task-heading{grid-template-columns:minmax(0,1fr);gap:var(--space-2)}
 }
 .full-page :is(.task-heading,.aggregation-group-heading)>:is(h3,h4){
   margin:0;font-size:var(--text-group-title);font-weight:var(--weight-semibold);line-height:1.5;
@@ -478,14 +491,35 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page :is(.ours th,.ours td,.ours-column){color:var(--result-ink);background:var(--result-soft);font-weight:var(--weight-bold)}
 .full-page .task-matrix tbody tr.ours th[scope="row"]{background:var(--result-soft)}
 .full-page .result-explanation{text-align:left;hyphens:none}
+/* Benchmark summaries share compact, labeled before/after comparisons. */
 .full-page .result-summary{
-  display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--space-1) var(--space-4);
-  margin:var(--space-3) 0 var(--space-4);text-align:left;hyphens:none;
+  display:block;margin:0 0 var(--space-4);padding:var(--space-4);
+  border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);
+  color:var(--ink);text-align:left;hyphens:none;
 }
-.full-page .result-summary-label,.full-page .result-comparison{white-space:nowrap}
-.full-page .performance-evidence>.result-summary{margin-top:var(--block-gap)}
+.full-page .result-summary-label{
+  margin:0 0 var(--space-3);font-size:var(--text-meta);font-weight:var(--weight-medium);
+  line-height:var(--leading-compact);color:var(--muted);
+}
+.full-page .result-comparisons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-5)}
+.full-page .result-comparison{
+  display:grid;grid-template-columns:minmax(0,1fr) var(--space-5) minmax(0,1fr);
+  align-items:end;gap:var(--space-2);min-width:0;margin:0;
+}
+.full-page .result-comparison+.result-comparison{padding-left:var(--space-5);border-left:1px solid var(--line)}
+.full-page .result-before{grid-column:1;grid-row:1}
+.full-page .result-after{grid-column:3;grid-row:1}
+.full-page .result-comparison::after{
+  content:"→";grid-column:2;grid-row:1;align-self:end;margin-bottom:.2rem;
+  color:var(--muted);text-align:center;font-size:var(--text-body);
+}
+.full-page .result-comparison dt{font-size:var(--text-meta);font-weight:var(--weight-medium);line-height:var(--leading-compact)}
+.full-page .result-comparison dd{margin:var(--space-1) 0 0;font-size:var(--text-result-value);font-weight:var(--weight-semibold);line-height:var(--leading-compact);font-variant-numeric:tabular-nums}
+.full-page .result-before dd{color:var(--muted)}
+.full-page .result-after dd{color:var(--result-ink)}
 @media(max-width:599px){
-  .full-page .result-summary-label{flex-basis:100%}
+  .full-page .result-comparisons{grid-template-columns:minmax(0,1fr);gap:var(--space-3)}
+  .full-page .result-comparison+.result-comparison{padding:var(--space-3) 0 0;border-left:0;border-top:1px solid var(--line)}
 }
 .full-page .performance-table-heading{gap:var(--space-3);justify-content:space-between}
 .full-page .performance-table-heading .table-metric{margin-left:auto;text-align:right}
@@ -593,16 +627,7 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
   }
 }
 
-/* Result summaries belong to the evidence they summarize, not to media transport. */
-.full-page .table-block>.result-summary,
-.full-page .performance-results>.result-summary{
-  margin:0;padding:var(--space-3) var(--evidence-inset);
-  background:var(--result-soft);border-bottom:1px solid var(--result-line);
-  color:var(--ink);
-}
 .full-page .performance-results{margin-top:var(--space-6)}
-.full-page .performance-results>.result-summary{border-top:2px solid var(--brand-sky)}
-.full-page .result-summary-label{font-weight:var(--weight-medium)}
 
 /* The equipment photograph must be large enough to inspect the cameras and workspace. */
 .full-page .setup-layout{
@@ -991,6 +1016,6 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 /* Task instructions wrap within one readable measure above the full media pair. */
 .full-page .task-heading .instruction{
   width:100%;max-width:68ch;
-  margin:var(--space-2) auto 0;
-  text-align:center;text-wrap:pretty;hyphens:none;
+  margin:0;
+  text-align:left;text-wrap:pretty;hyphens:none;
 }
