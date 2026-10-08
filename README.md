@@ -1,27 +1,23 @@
-# FlowVLA · MMAI Lab
-
-Research project pages for MMAI Lab, Ajou University.
-
-## FlowVLA
+# FlowVLA project website
 
 **FlowVLA: Enabling World Dynamics Understanding through Pluggable 3D Flow Learning**
 
-Publication address: [mmai-laboratory.github.io/flowvla/](https://mmai-laboratory.github.io/flowvla/)
+Project page: **[mmai-laboratory.github.io/flowvla/](https://mmai-laboratory.github.io/flowvla/)**
 
-The root `index.html` is the complete research page, including the method, experiments, analysis, paper, and demonstration videos. This repository publishes one page for the project; it does not publish separate overview, summary, abstract, or full-page copies. It contains the website and public research media, not model implementation or training code.
+This `gh-pages` branch contains the complete research website and its public media. The [`main` branch](https://github.com/MMAI-Laboratory/flowvla/tree/main) is reserved for the forthcoming implementation.
 
-## Editing and local preview
+## Editing and preview
 
-The source of truth is the checked-in root `index.html`, `styles.css`, `script.js`, and referenced `assets/`. There is no application build step. Keep asset links relative and public links consistent with the trailing-slash address above.
+Edit the root `index.html`, `styles.css`, `script.js`, and referenced `assets/`. These checked-in files are the website source of truth; there is no application build step. Keep asset paths relative and public URLs consistent with the canonical trailing-slash address above.
 
-From the repository root:
+From this branch's repository root:
 
 ```sh
 python3 tools/serve.py --directory . --port 8765
 ```
 
-Open `http://127.0.0.1:8765/`. The local server supports HTTP byte ranges for video seeking. Stop it with Ctrl+C when the preview is no longer needed.
+Open `http://127.0.0.1:8765/`. The preview server supports byte ranges for video seeking. Stop it with Ctrl+C when finished.
 
-The delivery bundle includes the paper, used images, and required optimized video copies. Preserve the manuscript's terminology, quantitative results, and verbatim Abstract. Keep the original research assets unchanged when preparing delivery derivatives; removing redundant presentation labels must not change the evidence they describe.
+Preserve the manuscript's terminology, quantitative results, verbatim Abstract, and established media provenance. Keep source research assets unchanged when producing web derivatives. Publish only the complete page and its required assets.
 
-See [deployment and validation](docs/deployment.md) for the hosting configuration, preservation boundaries, release checks, and rollback.
+GitHub Pages serves **`gh-pages` → `/ (root)`** with `.nojekyll`. See [deployment](docs/deployment.md) for branch ownership, migration status, verification, and recovery.

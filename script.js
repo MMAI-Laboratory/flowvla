@@ -428,7 +428,8 @@
       previousHeaderLink = currentHeader?.link;
       if (nav?.classList.contains('is-open')) queueNavReveal(nav, previousHeaderLink);
     }
-    if (navLocation) navLocation.textContent = inHero || !currentSection ? '1 · Overview' : (currentHeader?.link.dataset.location || currentHeader?.link.textContent || '').trim();
+    const locationLink = inHero || !currentSection ? headerRecords.find(isMainLink)?.link : currentHeader?.link;
+    if (navLocation) navLocation.textContent = (locationLink?.dataset.location || locationLink?.textContent || '').trim();
     if (backToTop) {
       const visible = scrollY >= 500;
       backToTop.classList.toggle('is-visible', visible); backToTop.hidden = !visible; backToTop.inert = !visible;

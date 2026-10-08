@@ -465,6 +465,24 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page .table-footer .table-provenance{margin:0;display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--space-2);text-align:left;font-size:var(--text-meta);line-height:var(--leading-compact)}
 .full-page .table-source-link{font-weight:var(--weight-medium)}
 
+/* Experiment choices size to their labels instead of stretching across media. */
+.full-page .media-gallery[data-gallery]>.choices{
+  width:fit-content;max-width:100%;
+  flex-wrap:wrap;justify-content:center;align-items:stretch;gap:0;
+  margin:0 auto var(--space-4);
+}
+.js .full-page .media-gallery[data-gallery]>.choices.js-only{display:flex}
+.full-page .media-gallery[data-gallery]>.choices button{
+  flex:0 1 auto;min-width:8rem;max-width:100%;
+  min-height:var(--control-height);padding:var(--space-3) var(--space-4);
+  font-size:var(--text-body-sm);font-weight:var(--weight-semibold);
+  line-height:var(--leading-compact);overflow-wrap:anywhere;
+}
+.full-page .media-gallery[data-gallery]>.choices .choice-detail{
+  font-size:var(--text-meta);font-weight:var(--weight-regular);
+  line-height:var(--leading-compact);
+}
+
 /* A shared display frame, independent of each source video's dimensions. */
 .full-page{
   --demo-frame-ratio:4 / 3;
@@ -567,6 +585,17 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page:not(.summary-page) .media-group{max-width:880px;margin-inline:auto}
 .full-page .rf-method-image>img,
 .full-page #expanded-figure[src$="/method.png"]{clip-path:inset(0 0 0 calc(300% / 1276))}
+
+/* Availability belongs with its destination; no unpublished URL is invented. */
+.full-page .publication-actions{gap:var(--space-3)}
+.full-page .publication-actions .publication-action{
+  flex-direction:column;gap:var(--space-1);min-width:8.5rem;min-height:4rem;
+  padding:var(--space-2) var(--space-4);font-size:var(--text-body-sm);
+}
+.full-page .publication-status{font-size:var(--text-micro);font-weight:var(--weight-regular);color:var(--muted)}
+.full-page .publication-action:disabled{opacity:1;cursor:default;background:var(--surface);color:var(--muted)}
+.full-page .table-caption.metric-only{justify-content:flex-end;border-top:0;padding-block:var(--space-2)}
+.full-page .table-block:has(>.metric-only){margin-top:var(--space-2)}
 
 @media(max-width:599px){
   .full-page .setup-layout{grid-template-columns:minmax(0,1fr);gap:var(--space-3);max-width:420px}
@@ -694,13 +723,18 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 /* The heading index, local outline and return link share one reading hierarchy. */
 .full-page{
   --heading-index-width:2.25rem;
+  --heading-index-gap:var(--space-3);
   --heading-index-scale:.88;
 }
 .full-page :is(h2,h3):has(>.heading-number){
   grid-template-columns:var(--heading-index-width) minmax(0,1fr);
   align-items:start;
-  column-gap:var(--space-3);
+  column-gap:var(--heading-index-gap);
   line-height:1.3;
+}
+/* Indent only the child heading; its evidence keeps the full reading width. */
+.full-page h3:has(>.heading-number){
+  padding-inline-start:calc(var(--heading-index-width) + var(--heading-index-gap));
 }
 .full-page .heading-number{
   display:flex;
@@ -804,6 +838,5 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
   .full-page .back-to-top{right:var(--space-4);bottom:var(--space-4)}
 }
 @media(max-width:599px){
-  .full-page{--heading-index-width:2rem}
-  .full-page :is(h2,h3):has(>.heading-number){column-gap:var(--space-2)}
+  .full-page{--heading-index-width:2rem;--heading-index-gap:var(--space-2)}
 }

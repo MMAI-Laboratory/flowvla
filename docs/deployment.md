@@ -1,76 +1,67 @@
-# Deployment
+# Website deployment
 
-## Route and hosting
+## Branch ownership and address
 
-The publication target is the public `MMAI-Laboratory/flowvla` repository at:
+The public page is **https://mmai-laboratory.github.io/flowvla/**.
 
-**https://mmai-laboratory.github.io/flowvla/**
+- `gh-pages` owns the static website: root `index.html`, `styles.css`, `script.js`, `assets/`, `.nojekyll`, and the local preview tool.
+- `main` is reserved for the forthcoming FlowVLA implementation. Website publication must not depend on `main`.
+- GitHub Pages must use **Deploy from a branch → gh-pages → / (root)**. No framework build, custom domain, or `CNAME` is required.
+- Keep relative asset URLs and existing section anchors. The branch change does not change the public `/flowvla/` address.
+- The separate lab homepage and previous personal publication are outside this migration.
 
-GitHub project Pages uses the repository name as the URL prefix. The root `index.html` therefore serves `/flowvla/`. Use the canonical trailing slash in links and metadata; keep CSS, JavaScript, paper, image, and video paths relative so the repository prefix is preserved.
+## Migration baseline
 
-The intended Pages configuration is **Deploy from a branch → main → / (root)**. The root `.nojekyll` serves the checked-in static files directly. No framework build, custom domain, `CNAME`, or separate deployment branch is required in this repository. The new address requires its own publication and live verification.
+Read-only inspection on 2026-10-08 found both working trees clean and matching their remote `main` branches.
 
-The existing lab homepage is a separate React/Vite static site. Its `main` workflow builds `dist` and replaces `gh-pages`; an edit made directly to that branch would be overwritten. This dedicated project repository produces the requested short URL without altering the homepage or depending on write access to it.
+| Repository | Baseline | Preserved behavior | Intended change |
+| --- | --- | --- | --- |
+| `MMAI-Laboratory/flowvla` | `main`, `daa3fb07cdbebb77f2c98236a4444b54d769bbbc` | Complete page, public address, scientific values, retained media, anchors, paper links, responsive controls and video byte ranges | Create website branch from this baseline; point Pages to it; leave a forthcoming-code README on `main`. |
+| `MMAI-Laboratory/projectpages` | `main`, `0fc2adc8c1407bf3f568468c24f5d1b9c2565100` | Preserve Git history in a verified local bundle before removal | Retire the repository after the branch-based website is verified. |
 
-## Baseline and preservation
+At this baseline, both repositories used Pages from `main` / root and reported `built`. The old repository provided a redirect and direct media compatibility at `/projectpages/flowvla/`. Its removal intentionally retires both that long address and its direct asset URLs. The owner explicitly requested this retirement; preserving that compatibility route is no longer a requirement.
 
-| Repository | Initial baseline | Preservation boundary |
-| --- | --- | --- |
-| `MMAI-Laboratory/flowvla` | Inherited `main` history at `499478c20be057398a90535401940b59314b6dcf` | Move the reviewed complete page and its assets to the repository root; change canonical URL metadata only. |
-| `MMAI-Laboratory/projectpages` | `main`, `499478c20be057398a90535401940b59314b6dcf` | Keep the existing page until the new address is verified; then replace its entry page with a redirect while retaining media. |
-| `MMAI-Laboratory/mmai-laboratory.github.io` | `main`, `c4f1119ebad25f37e99588fe0d0f1dbba71cd00b` | Read-only inspection; preserve homepage content, routes, build, and deployment. |
-| Previous project publication | `ee7f72779f2c2548e972270a75eee18f07c76981` | Read-only source; no further deployment from this migration. |
+Apply the `gnaroshi_mds` web-application and cross-repository guidance for canonical ownership, baseline preservation, deployment order, and truthful verification. The explicit retirement request supersedes the prior plan to retain the old redirect and media indefinitely.
 
-There are no alternate overview, summary, abstract, or nested full-page copies in this release. Preserve existing section anchors and relative asset references. The lab homepage and previous personal publication are not redirect, removal, or deployment targets in this change.
+## Release order
 
-## Migration order
+1. Preserve both baseline repositories in local Git bundles and verify that the bundles contain the expected refs and commits. Keep the backups outside the repositories being changed or removed. Git bundles preserve Git objects and refs, not GitHub settings or discussion metadata.
+2. Create and publish `gh-pages` from the FlowVLA baseline. Include the reviewed user feedback in HTML/CSS while preserving all media and quantitative values. Preserve the player implementation; correct the mobile outline fallback to derive its label from the same navigation data.
+3. Set Pages to `gh-pages` / root. Verify the successful publication corresponds to the website branch, and verify the existing `/flowvla/` URL and assets.
+4. Only after that verification, replace `main`'s website contents with the implementation placeholder README. Keep `main` as the default branch.
+5. Recheck that the public site remains served from `gh-pages` after the `main` change. Then delete `MMAI-Laboratory/projectpages`.
+6. Record the final branch commits, Pages source, checks, and old-repository removal result. Verify that the canonical site remains available and that the retired repository and old route are no longer served.
 
-1. Move the reviewed `flowvla/` content from the prior repository to this repository's root, preserving assets and behavior; update canonical URL metadata to the short address.
-2. Publish and verify the new `/flowvla/` address, including hash navigation, paper links, and actual media playback.
-3. Only after that verification, make `/projectpages/flowvla/` redirect to `/flowvla/`, preserving query and fragment. Retain old media files so existing direct links continue to work.
+If any step fails, stop the dependent cleanup and continue from the last verified state. Do not describe preparation or a settings change alone as successful publication or removal.
 
-The former address is a compatibility entry point, not a second content source. This order keeps the working page available throughout migration.
+## Inherited validation and provenance
 
-Paper wording, reported values, and scientific figure semantics remain the evidence boundary. The Abstract retains the manuscript's wording. Delivery compression, display-edge masks, and tonal derivatives must preserve the source assets; a darker image cannot recover detail already clipped in the original. Only required optimized media, the paper, and used images belong in the published bundle.
+The website being moved was already reviewed and publicly verified. These records are prior evidence, not fresh tests of the branch migration:
 
-## Applied guidance
+- The 2026-10-08 local content audit preserved all six quantitative tables, the manuscript's 257-word Abstract, reviewed Method excerpts, established author metadata, section anchors, and media provenance. All 13 playback regression checks passed. Actual browser checks at 320, 390, 1200, and 1843 CSS-pixel widths covered overview, paired and four-view playback without horizontal overflow.
+- The reviewed bundle contains one complete HTML page, one stylesheet, one script, 30 images/posters, one paper PDF, and 19 optimized MP4s: **53 website files**. Documentation, `.nojekyll`, and the preview tool are separate from this content count.
+- The former project-page release `20413d6459be07c880388dc069e1261f52dcd37b` was publicly verified before the short-address migration.
+- The current short-address release `8d034db606dedcf699f49f3e7aa872243abe00d6` was publicly verified at `/flowvla/`. All 53 file responses passed; HTML, CSS, JavaScript and PDF hashes matched; all 19 videos supported the expected byte ranges. Actual paired playback and Stop worked. Commit `daa3fb07cdbebb77f2c98236a4444b54d769bbbc` records that verification without changing the website bytes.
+- The old redirect commit `0fc2adc8c1407bf3f568468c24f5d1b9c2565100` followed verification of the short address. Its purpose ends when the old repository is retired.
 
-The `gnaroshi_mds` web-application and UI guidance applies to consistent component roles, paper-grounded terminology, accessible controls, responsive reading order, and real interaction checks. Its cross-repository guidance applies to the baselines, preservation scope, deployment order, and rollback recorded here.
+Scientific provenance remains unchanged: LIBERO's Seer rows use the supplied author response, page 1, items 1–2; its π₀.₅ results use paper Table 1. LIBERO-Plus uses Table 2, ablations use Tables 3–4, and real-world tasks and variations use Tables 5–6. Additional-backbone results use response item 8; point-composition analysis uses the response's 3D object points discussion. Method excerpts come from paper pages 3–5. Author metadata was previously established separately; the anonymous manuscript does not independently verify it. Original research assets remain preserved outside the delivery derivatives.
 
-The user's explicit request removes repetitive public table labels and unnecessary summary wording. It takes precedence over adding generic presentation labels. Necessary provenance stays in concise paper references and this repository's documentation; deleting a label must not rewrite scientific terminology or the underlying result. The request to publish only the complete page also supersedes guidance for maintaining two views when two views are requested.
+## Branch-release verification
 
-## Prior release validation
+For this migration, compare the website files on `gh-pages` against baseline `daa3fb07cdbebb77f2c98236a4444b54d769bbbc`. Verify Pages selects `gh-pages` / root and successfully publishes its release commit. Check the canonical response, HTML/CSS/JavaScript/PDF hashes, referenced image responses and MP4 byte ranges. Verify a section link and one representative playback/Stop interaction at the unchanged URL if branch delivery changes any served bytes or runtime behavior.
 
-The following checks describe the reviewed prior release at `/projectpages/flowvla/`, inherited at baseline `499478c20be057398a90535401940b59314b6dcf`. Local content and playback audits completed on **2026-10-08**. The content audit reported no failures; all 13 playback regression checks passed. They establish the preserved content baseline, not verification of the new URL.
+The reviewed HTML/CSS changes replace the hero Video/Paper actions with GitHub Code and an unavailable arXiv action, both marked Coming soon; distinguish subsection indentation; enlarge and compact all gallery tabs; remove duplicate benchmark table titles and the requested efficiency note; and shorten five ablation labels to w/o. No arXiv ID is invented. The GitHub Code link leads to the implementation branch, which honestly states that code is forthcoming.
 
-| Check | Observed result |
-| --- | --- |
-| Quantitative preservation | All six tables retained identical numeric and data cells against the prior publication baseline. |
-| Abstract and Method | The 257-word Abstract matches the canonical manuscript text. The two Method paragraphs match the reviewed source excerpts; their limited omissions and punctuation changes were recorded in the content audit. |
-| Reading order and terminology | Abstract precedes the overview video and Method. Reviewed headings and all four aggregation-view labels use source terminology. Only the two source-reported benchmark averages remain. |
-| Variation and TCP scope | The two paper-supported variations remain. Three unsupported variation players were removed, leaving 19 players; the other source, poster, size, and timing attributes are unchanged. The duplicate standalone TCP section is absent and its legacy anchor remains. |
-| Source preservation | All 96 checked source assets remained present and unchanged, including the existing tonal video derivative and poster. This is a source-preservation check, not the number of files published. |
-| References and accessibility | No duplicate IDs, missing local files, invalid in-page fragments, or invalid ARIA references were found. |
-| Playback | Passed lazy loading/no autoplay, independent playback, shared play/pause/seek, keyboard operation, enlargement/focus restoration, Stop/reset, tab changes, loading cancellation, partial failure/retry, and script-error checks. |
-| Responsive controls | Browser checks at 320, 390, 1200, and 1843 CSS-pixel widths found no overflow. Representative individual controls retained 44 × 44 px targets. Actual overview, paired, and four-view playback, Stop, and Replay were exercised. |
-| Delivery bundle and local serving | The exact 53-file list and every file hash match the reviewed manifest. The active local preview serves identical HTML. A video request for bytes 0–1023 returned HTTP 206 with 1,024 bytes. |
+The renewed manuscript review found no unsupported scientific terms or values. It added only two source-grounded sentences to the existing Method paragraphs: the scope of world dynamics (author response, lines 146–149) and reconstruction/selection limitations (paper page 8, lines 273–277). The Abstract is unchanged, and all 151 numeric cells across six tables remain identical. The existing public PDF stays available through the paper references.
 
-The prior release's reviewed single-page content manifest contained **53 files totaling 92,890,813 bytes**: one HTML page, one stylesheet, one script, 30 images/posters, one paper PDF, and 19 optimized MP4s. Each entry had a SHA-256 digest. This count excludes repository documentation and the local preview tool. No alternate page copy was included. The evidence records are `final-content-audit.json`, `media-controls-audit.json`, and `bundle-manifest.json`; local audit paths and source documents are not published. The canonical URL change requires a new HTML digest for this migration.
+The unchanged player implementation does not require repeating its full 13-check regression suite. New claims must describe the actual migration checks, separately from inherited validation.
 
-Source provenance is retained here without adding labels to the rendered page: LIBERO's Seer rows use the supplied author response, page 1, items 1–2; its π₀.₅ results use paper Table 1. LIBERO-Plus uses Table 2, ablations use Tables 3–4, and real-world tasks and variations use Tables 5–6. Additional-backbone results use the response's item 8; point-composition analysis uses its 3D object points discussion. Method excerpts come from paper pages 3–5. Previously established author metadata is retained separately; the anonymous manuscript does not independently verify it.
+**Local validation complete:** verified Git bundles preserve both baseline histories. Manuscript review confirms all 151 numeric cells unchanged, five w/o label substitutions, and two source-grounded Method additions. At 1843, 390 and 320 CSS-pixel widths, headings, all gallery choices, availability buttons and metric-only table captions fit without overflow; tab click/Enter interactions keep one selected panel. All controls in the top action row share a 64px height. The mobile outline now derives its initial Abstract label from the navigation data. All local asset and ARIA references resolve. Publication and cleanup results are recorded in the release receipt after the branch is live.
 
-**Prior publication verified on 2026-10-08.** GitHub Pages reported `built` for release commit `20413d6459be07c880388dc069e1261f52dcd37b`. The former `/projectpages/flowvla/` URL returned HTTP 200 and the address without a trailing slash redirected to it. All 53 published files passed response checks; the HTML, CSS, JavaScript, and paper PDF matched the reviewed SHA-256 hashes. Every MP4 returned HTTP 206 with the expected 1,024-byte range and total size. Image response sizes matched the manifest.
+## Recovery
 
-The former public page was opened in a browser. The Basketball viewpoint pair played together; Stop paused and reset both videos to zero, with no media errors or horizontal overflow. The single-page navigation and manuscript text rendered at that path. A local publication receipt and screenshot retain this evidence. Later documentation-only commits did not change the reviewed page or asset bytes.
+Before the Pages source changes, the existing site on `main` remains available. If `gh-pages` publication fails while `main` still contains the website, retain the working source while repairing the website branch. Do not clean `main` or remove the old repository yet.
 
-## Current publication status
+After `main` becomes the implementation branch, recover the website on `gh-pages`: revert the faulty website commit or restore the known baseline website tree there, then verify publication. Do not repoint Pages at the implementation branch.
 
-**Publication at `/flowvla/` verified on 2026-10-08.** Pages reported `built` for commit `8d034db606dedcf699f49f3e7aa872243abe00d6`. Preservation checks confirmed exactly five URL substitutions in the HTML (65 fewer bytes) and all 52 supporting files byte-identical to the prior baseline. All 123 relative HTML references and internal anchors resolve.
-
-All 53 files passed public response checks at the new address. HTML, CSS, JavaScript and PDF hashes matched; every MP4 returned the expected byte range. The address without a trailing slash redirected to `/flowvla/`. The `#comparisons` link loaded its section, and the Cup & Plush pair actually played from new media URLs; Stop paused and reset both. No media error occurred. The old entry redirect is managed separately by `MMAI-Laboratory/projectpages`, commit `0fc2adc`, after this successful verification; its final public checks belong in the migration receipt.
-
-## Rollback
-
-For later releases, revert the faulty project-page commit on `main`, run the affected local checks, push the revert, and verify that Pages serves the previous page and media. Retain prior referenced assets until their replacement is confirmed live. Avoid force-pushing release history.
-
-If the new address fails before migration completes, leave the working `/projectpages/flowvla/` page in place while correcting this repository. If failure appears after the old entry page becomes a redirect, first revert that redirect commit in `projectpages` to restore its complete page, then repair this repository. Keep old media available throughout. No rollback step should change the separate lab homepage or redeploy the previous personal publication.
+Retain the local bundles after old-repository removal. A bundle can restore Git history into a new or recovered repository, but it does not automatically restore GitHub settings or the old public URL. Repository recovery and any reversal of the intentional route retirement require an explicit owner decision. Do not alter the lab homepage or previous personal site as an automatic rollback.
