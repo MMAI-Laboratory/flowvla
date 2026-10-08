@@ -587,17 +587,25 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page #expanded-figure[src$="/method.png"]{clip-path:inset(0 0 0 calc(300% / 1276))}
 
 /* Availability belongs with its destination; no unpublished URL is invented. */
-.full-page .publication-actions{gap:var(--space-3)}
-.full-page .publication-actions .publication-action{
-  flex-direction:column;gap:var(--space-1);min-width:8.5rem;min-height:4rem;
-  padding:var(--space-2) var(--space-4);font-size:var(--text-body-sm);
+.full-page .publication-actions{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;
+  gap:var(--space-3);width:min(100%,24rem);margin-inline:auto;
 }
+.full-page .publication-item{display:grid;gap:var(--space-2);min-width:0;text-align:center}
+.full-page .publication-actions .publication-action{
+  flex-direction:row;gap:var(--space-2);width:100%;min-width:0;min-height:3rem;
+  padding:var(--space-2);font-size:var(--text-body-sm);white-space:nowrap;
+}
+.full-page .publication-icon{width:var(--control-icon-size);height:var(--control-icon-size);flex:none}
 .full-page .publication-status{font-size:var(--text-micro);font-weight:var(--weight-regular);color:var(--muted)}
 .full-page .publication-action:disabled{opacity:1;cursor:default;background:var(--surface);color:var(--muted)}
+.full-page .publication-action:disabled:hover{background:var(--surface);border-color:var(--line)}
 .full-page .table-caption.metric-only{justify-content:flex-end;border-top:0;padding-block:var(--space-2)}
 .full-page .table-block:has(>.metric-only){margin-top:var(--space-2)}
 
 @media(max-width:599px){
+  .full-page .publication-actions{gap:var(--space-2)}
+  .full-page .publication-actions .publication-action{gap:var(--space-1)}
   .full-page .setup-layout{grid-template-columns:minmax(0,1fr);gap:var(--space-3);max-width:420px}
   .full-page .setup-specs>div{grid-template-columns:80px minmax(0,1fr)}
   .full-page .task-categories{padding:var(--space-4);gap:var(--space-5)}
@@ -839,4 +847,42 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 }
 @media(max-width:599px){
   .full-page{--heading-index-width:2rem;--heading-index-gap:var(--space-2)}
+}
+
+/* Result values share one alignment; descriptive row labels remain left aligned. */
+.full-page :is(.benchmark-table,.result-table) thead th:not(:first-child),
+.full-page :is(.benchmark-table,.result-table,.task-matrix) tbody td{
+  text-align:center;
+}
+.full-page :is(.benchmark-table,.result-table) thead th:first-child,
+.full-page :is(.benchmark-table,.result-table,.task-matrix) tbody th[scope="row"]{
+  text-align:left;
+}
+
+/* The data owns its closing rule, including tables without a source footer. */
+.full-page :is(.benchmark-table,.result-table,.task-matrix) tbody tr:last-child>:is(th,td){
+  border-bottom:1px solid var(--line-strong);
+}
+.full-page :is(.table-block,.performance-results)>.table-footer{
+  border-top:0;
+}
+
+/* Keep each category heading closer to its images after subtitle removal. */
+.full-page .task-taxonomy .task-categories{
+  padding-block:var(--space-3) var(--space-4);
+}
+.full-page .task-category>h4{
+  margin-block:0 var(--space-3);
+}
+@media(max-width:599px){
+  .full-page .task-category+.task-category{
+    padding-top:var(--space-4);
+  }
+}
+
+/* Task instructions wrap within one readable measure above the full media pair. */
+.full-page .task-heading .instruction{
+  width:100%;max-width:68ch;
+  margin:var(--space-2) auto 0;
+  text-align:center;text-wrap:pretty;hyphens:none;
 }

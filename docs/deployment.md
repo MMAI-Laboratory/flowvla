@@ -4,6 +4,8 @@
 
 The public page is **https://mmai-laboratory.github.io/flowvla/**.
 
+The subsequent [copy and spacing refinement](refinement-2026-10-08.md) records the current three-sentence Abstract, restored source qualifiers, and table/button adjustments. The migration evidence below describes the earlier release at its recorded commits.
+
 - `gh-pages` owns the static website: root `index.html`, `styles.css`, `script.js`, `assets/`, `.nojekyll`, and the local preview tool.
 - `main` is reserved for the forthcoming FlowVLA implementation. Website publication must not depend on `main`.
 - GitHub Pages must use **Deploy from a branch → gh-pages → / (root)**. No framework build, custom domain, or `CNAME` is required.

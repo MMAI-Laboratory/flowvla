@@ -18,6 +18,6 @@ python3 tools/serve.py --directory . --port 8765
 
 Open `http://127.0.0.1:8765/`. The preview server supports byte ranges for video seeking. Stop it with Ctrl+C when finished.
 
-Preserve the manuscript's terminology, quantitative results, verbatim Abstract, and established media provenance. Keep source research assets unchanged when producing web derivatives. Publish only the complete page and its required assets.
+Preserve the manuscript's terminology, quantitative results, claim boundaries, and established media provenance. The owner requested the current three-sentence Abstract summary; keep its training/inference and evaluation conditions faithful to the original, which remains available in the linked paper PDF. Keep source research assets unchanged when producing web derivatives. Publish only the complete page and its required assets.
 
 GitHub Pages serves **`gh-pages` → `/ (root)`** with `.nojekyll`. See [deployment](docs/deployment.md) for branch ownership, migration status, verification, and recovery.
