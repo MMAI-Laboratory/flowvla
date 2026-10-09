@@ -210,6 +210,15 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 
 @media(max-width:600px){.benchmark-table{table-layout:fixed}.benchmark-table th:first-child{width:150px;min-width:150px;max-width:150px}#libero-plus .benchmark-table{min-width:760px}}
 
+/* Allow shorter word fragments where justified scientific prose has little room. */
+@media(max-width:380px){
+  .prose>p,.summary-page .section>p:not(.detail-link),.summary-result>p,.result-explanation,#data-efficiency>p:not(.caption){
+    -webkit-hyphenate-limit-before:3;
+    -webkit-hyphenate-limit-after:3;
+    hyphenate-limit-chars:6 3 3;
+  }
+}
+
 /* Original figure pixels are reflowed only at their independent panel boundaries. */
 .responsive-figure .rf-crop{display:block;position:relative;overflow:hidden;aspect-ratio:var(--rf-ratio);min-width:0;background:white}
 .responsive-figure .rf-crop>img{position:absolute;inset:auto;left:var(--rf-image-left);top:var(--rf-image-top);width:var(--rf-image-width);max-width:none;height:auto}
@@ -369,13 +378,15 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page .speed,.full-page .group-time,.full-page .control-scope{font-size:var(--text-micro)}
 .full-page .result-explanation{line-height:var(--leading-body)}
 .full-page .analysis-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,24rem),1fr))}
-.full-page .analysis-grid>div{width:100%;max-width:30rem;justify-self:center}
+.full-page .analysis-grid>div{width:100%}
 
 /* Maintain readable labels and internal scrolling on narrow screens. */
-@media(max-width:599px){
+.full-page .table-block:has(.benchmark-table){container:benchmark / inline-size}
+@container benchmark (max-width:639px){
   /* Preserve two complete numeric columns beside the pinned method at 320 px. */
   .full-page .benchmark-table{table-layout:fixed;min-width:31.5rem;width:100%}
   .full-page .benchmark-table th:first-child{width:9rem;min-width:9rem;max-width:9rem}
+  .full-page .benchmark-table .method-venue{display:block;margin:2px 0 0}
   .full-page .benchmark-table :is(th,td).numeric-column{width:4.5rem;min-width:4.5rem;padding-inline:var(--space-2)}
   .full-page #libero-plus .benchmark-table{min-width:46.5rem}
   .full-page #libero-plus .benchmark-table :is(th,td):nth-child(4){width:5rem}
@@ -463,6 +474,9 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
   font:var(--weight-semibold) var(--text-media-title)/var(--leading-compact) var(--font-sans);
 }
 .full-page .clip>figcaption:has(>.speed){grid-template-columns:minmax(4.25rem,1fr) auto minmax(4.25rem,1fr)}
+@media(max-width:380px){
+  .full-page .clip>figcaption:has(>.speed){padding-inline:6px}
+}
 .full-page .clip>figcaption>.clip-label{
   display:block;grid-column:2;grid-row:1;min-width:0;
   font:inherit;text-align:center;overflow-wrap:anywhere;
@@ -535,17 +549,17 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
   color:var(--ink);text-align:left;hyphens:none;
 }
 .full-page .result-summary-label{
-  flex:0 1 12rem;margin:0;font-size:var(--text-meta);font-weight:var(--weight-medium);
+  flex:0 1 12rem;max-width:12rem;margin:0;font-size:var(--text-meta);font-weight:var(--weight-medium);
   line-height:var(--leading-compact);color:var(--muted);
 }
-.full-page .result-comparisons{display:flex;align-items:stretch;gap:0}
+.full-page .result-comparisons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));flex:1 1 29rem;align-items:stretch;gap:0}
 .full-page .result-comparison{
   display:grid;grid-template-columns:max-content 1rem max-content;
-  justify-content:start;align-items:end;gap:var(--space-3);min-width:0;margin:0;
+  justify-content:center;align-items:end;gap:var(--space-3);min-width:0;margin:0;
 }
 .full-page .result-comparison{padding-block:var(--space-1)}
 .full-page .result-comparison+.result-comparison{
-  margin-left:var(--space-5);padding-left:var(--space-5);
+  margin-left:0;padding-left:0;
   border-left:1px solid var(--line-strong);
 }
 .full-page .result-before{grid-column:1;grid-row:1}
@@ -559,11 +573,12 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page .result-before dd{color:var(--muted)}
 .full-page .result-after dd{color:var(--result-ink)}
 @media(max-width:799px){
-  .full-page .result-summary-label{flex-basis:100%}
+  .full-page .result-summary-label{flex-basis:100%;max-width:none}
 }
 @media(max-width:599px){
   .full-page .result-summary{padding:var(--space-4);gap:var(--space-4)}
-  .full-page .result-comparisons{width:100%;flex-direction:column;align-items:stretch;gap:0}
+  .full-page .result-comparisons{width:100%;grid-template-columns:1fr;align-items:stretch;gap:0}
+  .full-page .result-comparison{justify-content:start}
   .full-page .result-comparison+.result-comparison{
     margin:var(--space-4) 0 0;padding:var(--space-4) 0 0;
     border-left:0;border-top:1px solid var(--line-strong);
@@ -1143,8 +1158,10 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 }
 
 /* Keep each category heading closer to its images after subtitle removal. */
+.full-page .task-taxonomy{border:0;overflow:visible}
 .full-page .task-taxonomy .task-categories{
   padding-block:var(--space-3) var(--space-4);
+  border:1px solid var(--line);border-radius:var(--radius);
 }
 .full-page .task-category>h4{
   margin-block:0 var(--space-3);
