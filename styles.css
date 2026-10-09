@@ -194,7 +194,7 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .task-matrix tbody tr:last-child>*{border-bottom:0}
 .performance-results .table-footer{border-top:1px solid var(--line-strong)}
 .performance-results .scroll-hint{display:none;font-size:var(--text-meta);color:var(--accent)}
-@container (max-width:719px){.performance-results .scroll-hint{display:inline}}
+@container (max-width:731px){.performance-results .scroll-hint{display:inline}}
 .variation-results-note{padding:12px 14px;background:var(--soft);border:1px solid var(--line);border-radius:var(--radius);font-size:var(--text-meta)}
 
 .header-return{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-size:var(--text-meta);font-weight:550;white-space:nowrap}
@@ -329,8 +329,9 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page .benchmark-table tbody tr:not(.ours):hover>*{background:var(--surface)}
 .full-page .ours th,.full-page .ours td{background:var(--accent-soft)}
 
-/* The full chart stays visible; only the numeric comparison scrolls. */
+/* Keep plot labels readable and let the related chart and table scroll together. */
 .full-page .performance-results{margin-top:16px;border:0;border-radius:0;overflow:visible}
+.full-page .performance-content{min-width:45.75rem}
 .full-page .performance-chart{padding:0;border:0;border-radius:0}
 .full-page .performance-table-heading{padding:8px var(--evidence-inset);margin-top:12px;background:white;border:0;border-top:1px solid var(--line-strong)}
 .full-page .performance-results .scroll-hint{font-size:var(--text-caption)}
@@ -526,6 +527,10 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page .aggregation-group-heading>h4{
   margin:0;font-size:var(--text-media-title);font-weight:var(--weight-semibold);line-height:1.5;
 }
+.full-page .clip-note{
+  margin:0;padding:var(--space-2) var(--space-3);border-top:1px solid var(--line);
+  color:var(--muted);font-size:var(--text-caption);line-height:1.5;text-align:left;
+}
 .full-page .task-category h4{font-size:var(--text-group-title);font-weight:var(--weight-semibold)}
 /* Indent scientific prose only; metadata and instructions retain their own alignment. */
 .full-page .prose>p,.full-page p.body-copy{text-indent:1.5em}
@@ -543,23 +548,23 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page .result-explanation{text-align:left;hyphens:none}
 /* Benchmark summaries share compact, labeled before/after comparisons. */
 .full-page .result-summary{
-  display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-4) var(--space-6);
+  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:var(--space-4) var(--space-5);
   margin:0 0 var(--space-4);padding:var(--space-4) var(--space-5);
   border:0;border-radius:var(--radius);background:var(--soft);
   color:var(--ink);text-align:left;hyphens:none;
 }
 .full-page .result-summary-label{
-  flex:0 1 12rem;max-width:12rem;margin:0;font-size:var(--text-meta);font-weight:var(--weight-medium);
+  flex:0 1 auto;max-width:none;margin:0;font-size:var(--text-meta);font-weight:var(--weight-medium);white-space:nowrap;
   line-height:var(--leading-compact);color:var(--muted);
 }
-.full-page .result-comparisons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));flex:1 1 29rem;align-items:stretch;gap:0}
+.full-page .result-comparisons{display:grid;grid-template-columns:repeat(2,max-content);flex:0 1 auto;align-items:stretch;gap:var(--space-6)}
 .full-page .result-comparison{
   display:grid;grid-template-columns:max-content 1rem max-content;
-  justify-content:center;align-items:end;gap:var(--space-3);min-width:0;margin:0;
+  justify-content:start;align-items:end;gap:var(--space-3);min-width:0;margin:0;
 }
 .full-page .result-comparison{padding-block:var(--space-1)}
 .full-page .result-comparison+.result-comparison{
-  margin-left:0;padding-left:0;
+  margin-left:0;padding-left:var(--space-6);
   border-left:1px solid var(--line-strong);
 }
 .full-page .result-before{grid-column:1;grid-row:1}
@@ -572,11 +577,12 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page .result-comparison dd{margin:var(--space-1) 0 0;font-size:var(--text-result-value);font-weight:var(--weight-semibold);line-height:var(--leading-compact);font-variant-numeric:tabular-nums}
 .full-page .result-before dd{color:var(--muted)}
 .full-page .result-after dd{color:var(--result-ink)}
-@media(max-width:799px){
-  .full-page .result-summary-label{flex-basis:100%;max-width:none}
+@container benchmark (max-width:800px){
+  .full-page .result-summary{justify-content:flex-start;row-gap:var(--space-2)}
+  .full-page .result-summary-label{flex-basis:100%;white-space:normal}
 }
-@media(max-width:599px){
-  .full-page .result-summary{padding:var(--space-4);gap:var(--space-4)}
+@container benchmark (max-width:575px){
+  .full-page .result-summary{padding:var(--space-4);gap:var(--space-2)}
   .full-page .result-comparisons{width:100%;grid-template-columns:1fr;align-items:stretch;gap:0}
   .full-page .result-comparison{justify-content:start}
   .full-page .result-comparison+.result-comparison{
@@ -1180,3 +1186,6 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
   margin:0;
   text-align:left;text-wrap:pretty;hyphens:none;
 }
+
+/* These two-column evidence tables fit without a frozen label column. */
+.full-page .analysis-grid .result-table th:first-child{position:static;box-shadow:none}
