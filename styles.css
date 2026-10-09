@@ -548,9 +548,57 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page .media-gallery[data-gallery]>.choices button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 @media(max-width:599px){
   .full-page .media-gallery[data-gallery]>.choices button{padding-inline:var(--space-3)}
-  .full-page .media-gallery[data-gallery]>.choices:has(>button:nth-child(2):last-child){
+  .full-page .media-gallery[data-gallery="reconstruction-examples"]>.choices{
     width:max-content;flex-direction:column;align-items:stretch;
   }
+}
+
+/* Restore the connected experiment tabs; close their formerly open outer edges. */
+.full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices{
+  gap:0;flex-wrap:nowrap;margin-bottom:var(--space-4);
+  border:1px solid var(--line-strong);background:white;
+}
+.full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  flex:0 1 auto;min-width:8rem;padding:var(--space-3) var(--space-4);
+  border:0;border-radius:0;background:white;color:var(--muted);
+  font-weight:var(--weight-semibold);
+}
+.full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button+button{
+  border-left:1px solid var(--line);
+}
+.full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:transparent;
+}
+.full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button:hover{
+  background:var(--soft);color:var(--ink);
+}
+.full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button[aria-pressed="true"]{
+  background:var(--accent-soft);color:var(--accent);
+}
+.full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button[aria-pressed="true"]::after{
+  background:var(--accent);
+}
+.full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button:focus-visible{
+  outline-offset:-3px;z-index:1;
+}
+.full-page .media-gallery[data-gallery="variations"]>.choices{width:min(100%,32rem)}
+.full-page .media-gallery[data-gallery="variations"]>.choices button{flex:1 1 0;min-width:0}
+@media(max-width:799px){
+  .full-page .media-gallery[data-gallery="real-world"]>.choices button{min-width:0;padding-inline:var(--space-3)}
+}
+@media(max-width:599px){
+  .js .full-page .media-gallery[data-gallery="real-world"]>.choices.js-only{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;
+  }
+  .full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button{
+    min-width:0;padding-inline:var(--space-3);
+  }
+  .full-page .media-gallery[data-gallery="real-world"]>.choices button:nth-child(odd){border-left:0}
+  .full-page .media-gallery[data-gallery="real-world"]>.choices button:nth-child(n+3){border-top:1px solid var(--line)}
+  .full-page .media-gallery[data-gallery="real-world"]>.choices button:last-child:nth-child(odd){grid-column:1/-1}
+  .full-page .media-gallery[data-gallery="variations"]>.choices{flex-direction:column}
+  .full-page .media-gallery[data-gallery="variations"]>.choices button+button{border-left:0;border-top:1px solid var(--line)}
 }
 
 /* A shared display frame, independent of each source video's dimensions. */
