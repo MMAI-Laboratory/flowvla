@@ -275,9 +275,15 @@
     const alignHeadings = () => {
       const headings = panels.map(p => $('.task-heading', p)).filter(Boolean);
       gallery.style.removeProperty('--task-heading-height');
-      if (headings.length) gallery.style.setProperty('--task-heading-height', `${Math.ceil(Math.max(...headings.map(h => h.scrollHeight)))}px`);
+      if (headings.length) gallery.style.setProperty('--task-heading-height', `${Math.ceil(Math.max(...headings.map(h => h.getBoundingClientRect().height)))}px`);
     };
-    const resize = new ResizeObserver(alignHeadings); resize.observe(gallery.querySelector('.choices'));
+    let measuredWidth = 0;
+    const resize = new ResizeObserver(() => {
+      const width = gallery.clientWidth;
+      if (width === measuredWidth) return;
+      measuredWidth = width; alignHeadings();
+    });
+    resize.observe(gallery);
     alignHeadings();
     choices.forEach(b => b.addEventListener('click', () => select(b))); if (choices.length) select(choices.find(b => b.getAttribute('aria-pressed') === 'true') || choices[0]);
   });
