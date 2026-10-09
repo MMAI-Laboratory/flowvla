@@ -5,7 +5,7 @@
   const videos = [...new Set($$('.media-shell video, #overview-video'))];
   const states = new WeakMap(), membership = new WeakMap();
   const groups = [], dialog = $('#video-dialog'), expanded = $('#expanded-video'), dialogContext = $('#dialog-context');
-  let opener = null, expandedSource = null;
+  let opener = null, expandedSource = null, expandedSession = null;
   const duration = v => Number.isFinite(v.duration) ? v.duration : Number(v.dataset.duration) || 0;
   const format = n => Number.isFinite(n) ? `${Math.floor(Math.max(0, n) / 60)}:${String(Math.floor(Math.max(0, n) % 60)).padStart(2, '0')}` : '--:--';
   const available = v => !$('#figure-dialog')?.open && !v.closest('[hidden]') && !document.hidden && (v === expanded ? dialog?.open : !dialog?.open);
@@ -45,6 +45,7 @@
     const play = button(`${prefix}-play`, 'play', `Play ${scope}`, grouped);
     const seek = node('input', `${prefix}-seek`); seek.type = 'range'; seek.min = 0; seek.max = 1000; seek.step = 1; seek.value = 0; seek.setAttribute('aria-label', `Seek ${title}`);
     const time = node('output', `${prefix}-time`, '0:00 / --:--');
+    time.setAttribute('aria-live', 'off');
     const restart = button(`${prefix}-restart`, 'restart', `${grouped ? 'Replay' : 'Restart'} ${scope} from the beginning`, grouped);
     const enlarge = grouped ? null : button('player-expand', 'expand', `Enlarge ${title}`);
     const mute = withAudio ? button('player-mute', 'sound', `Mute ${title}`) : null;
@@ -111,8 +112,8 @@
     if (g.coordinated && g.running) g.time = g.master.currentTime;
     buttonState(g.ui.play, g.pending ? 'loading' : active ? 'pause' : 'play', `${g.pending ? 'Cancel loading' : active ? 'Pause' : 'Play'} all videos in ${g.label}`);
     $('.control-scope', g.ui.play).textContent = g.pending ? 'Cancel' : active ? 'Pause all' : 'Play all';
-    // Stop is the single route back to independent playback. The shared
-    // timeline is only exposed while it represents every video in the group.
+    // The shared timeline is only exposed while it represents every video
+    // in the group; stopping or leaving the tab restores independent playback.
     g.ui.timeline.hidden = !g.coordinated;
     g.root.classList.toggle('is-coordinated', g.coordinated);
     g.ui.bar.dataset.mode = g.coordinated ? 'together' : 'individual';
@@ -163,6 +164,7 @@
   }
   async function playOne(v, restart = false) {
     independent(v); const s = states.get(v); if (!available(v)) return;
+    if (v === expanded && expandedSession) expandedSession.changed = true;
     const token = ++s.token; s.pending = true; status(s.ui, 'Loading video…', true); updateVideo(v);
     try {
       hydrate(v, 'auto');
@@ -176,6 +178,7 @@
     finally { if (token === s.token) { s.pending = false; updateVideo(v); } }
   }
   async function seekOne(v, ratio) {
+    if (v === expanded && expandedSession) expandedSession.changed = true;
     independent(v); pauseOne(v); const s = states.get(v), token = s.token; status(s.ui, 'Loading video…', true);
     try { await ready(v, 1); if (token !== s.token) return false; v.currentTime = ratio * duration(v); status(s.ui, ''); updateVideo(v); return true; }
     catch (_) { if (token === s.token) status(s.ui, 'Unable to seek. Try again.'); return false; }
@@ -257,6 +260,12 @@
         dialogContext.hidden = !dialogContext.textContent;
       }
       const position = v.currentTime;
+      const sourceGroup = membership.get(v);
+      expandedSession = {
+        group: sourceGroup?.coordinated ? sourceGroup : null,
+        groupTime: sourceGroup?.coordinated ? sourceGroup.time : null,
+        changed: false
+      };
       const viewport = v.closest('.video-viewport'), expandedViewport = expanded.closest('.video-viewport');
       const rect = viewport?.getBoundingClientRect(), ratio = rect?.height ? rect.width / rect.height : 4/3;
       expandedViewport.setAttribute('style', viewport?.getAttribute('style') || '');
@@ -288,7 +297,7 @@
     const choices = $$('[data-choice]', gallery), panels = $$('[data-panel]', gallery);
     const select = choice => {
       choices.forEach(b => { const selected = b === choice; b.setAttribute('aria-pressed', String(selected)); b.classList.toggle('is-active', selected); });
-      panels.forEach(p => { p.hidden = p.dataset.panel !== choice.dataset.choice; p.inert = p.hidden; p.toggleAttribute('inert', p.hidden); p.setAttribute('aria-hidden', String(p.hidden)); if (p.hidden) { groups.filter(g => p.contains(g.videos[0])).forEach(pauseGroup); $$('video', p).filter(v => states.has(v)).forEach(pauseOne); } else $$('video', p).forEach(warm); });
+      panels.forEach(p => { p.hidden = p.dataset.panel !== choice.dataset.choice; p.inert = p.hidden; p.toggleAttribute('inert', p.hidden); p.setAttribute('aria-hidden', String(p.hidden)); if (p.hidden) { groups.filter(g => p.contains(g.videos[0])).forEach(g => individualMode(g)); $$('video', p).filter(v => states.has(v)).forEach(pauseOne); } else $$('video', p).forEach(warm); });
     };
     const alignHeadings = () => {
       const headings = panels.map(p => $('.task-heading', p)).filter(Boolean);
@@ -323,12 +332,17 @@
   $('#close-dialog')?.addEventListener('click', () => dialog.close());
   dialog?.addEventListener('click', e => { if (e.target === dialog) { const r = dialog.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) dialog.close(); } });
   dialog?.addEventListener('close', () => {
-    if (expandedSource && expanded.readyState >= 1 && Number.isFinite(expanded.currentTime)) {
+    if (expandedSession?.changed && expandedSource && expanded.readyState >= 1 && Number.isFinite(expanded.currentTime)) {
       const position = Math.min(expanded.currentTime, duration(expandedSource)), source = expandedSource, g = membership.get(source);
       if (g?.coordinated) seekGroup(g, groupDuration(g) ? position / groupDuration(g) : 0);
       else { hydrate(source); ready(source, 1).then(() => { source.currentTime = position; updateVideo(source); }).catch(() => {}); }
+    } else if (expandedSession?.group?.coordinated) {
+      // A shorter clip may already be at its end while its group is farther
+      // along. Merely inspecting that clip must not rewind the shared clock.
+      expandedSession.group.time = expandedSession.groupTime;
+      updateGroup(expandedSession.group);
     }
-    expanded.pause(); expanded.onloadedmetadata = null; expanded.removeAttribute('src'); expanded.load(); opener?.focus({ preventScroll: true }); expandedSource = null;
+    pauseOne(expanded); expanded.onloadedmetadata = null; expanded.removeAttribute('src'); expanded.load(); opener?.focus({ preventScroll: true }); expandedSource = null; expandedSession = null;
     if (dialogContext) { dialogContext.textContent = ''; dialogContext.hidden = true; }
   });
   $$('.table-block > .table-scroll:not(.performance-scroll)').forEach((scroll, index) => {
