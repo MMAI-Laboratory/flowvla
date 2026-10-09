@@ -63,6 +63,7 @@
   --cell-block:.375rem;
   --cell-inline:.625rem;
   --media-inset:var(--space-3);
+  --media-width:880px;
   --section-gap:var(--space-6);
   --block-gap:var(--space-5);
   --body:var(--text-body);
@@ -454,7 +455,7 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page .research-figure figcaption{padding:var(--media-inset);font-size:var(--text-caption);line-height:1.5}
 /* Experiment names belong to the selector; only the condition sits above media. */
 .full-page .task-heading{
-  display:flex;align-items:center;max-width:880px;
+  display:flex;align-items:center;max-width:var(--media-width);
   margin:0 auto var(--space-5);padding:0 0 var(--space-4);
   border:0;border-bottom:1px solid var(--line);background:transparent;text-align:left;
 }
@@ -553,14 +554,15 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
   }
 }
 
-/* Restore the connected experiment tabs; close their formerly open outer edges. */
+/* Experiment selection, instructions, and media share the same horizontal extent. */
 .full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices{
+  width:100%;max-width:var(--media-width);
   gap:0;flex-wrap:nowrap;margin-bottom:var(--space-4);
   border:1px solid var(--line-strong);background:white;
 }
 .full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button{
   position:relative;display:flex;align-items:center;justify-content:center;
-  flex:0 1 auto;min-width:8rem;padding:var(--space-3) var(--space-4);
+  flex:1 1 0;min-width:0;padding:var(--space-3) var(--space-4);
   border:0;border-radius:0;background:white;color:var(--muted);
   font-weight:var(--weight-semibold);
 }
@@ -582,10 +584,8 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button:focus-visible{
   outline-offset:-3px;z-index:1;
 }
-.full-page .media-gallery[data-gallery="variations"]>.choices{width:min(100%,32rem)}
-.full-page .media-gallery[data-gallery="variations"]>.choices button{flex:1 1 0;min-width:0}
 @media(max-width:799px){
-  .full-page .media-gallery[data-gallery="real-world"]>.choices button{min-width:0;padding-inline:var(--space-3)}
+  .full-page .media-gallery[data-gallery="real-world"]>.choices button{flex:1 1 auto;padding-inline:var(--space-3)}
 }
 @media(max-width:599px){
   .js .full-page .media-gallery[data-gallery="real-world"]>.choices.js-only{
@@ -691,7 +691,7 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page .task-category+.task-category::before{content:"";position:absolute;left:calc(-1 * var(--space-4));top:0;bottom:0;border-left:1px solid var(--line)}
 
 /* Equal media slots keep demonstrations legible without filling the entire column. */
-.full-page:not(.summary-page) .media-group{max-width:880px;margin-inline:auto}
+.full-page:not(.summary-page) .media-group{max-width:var(--media-width);margin-inline:auto}
 .full-page .rf-method-image>img,
 .full-page #expanded-figure[src$="/method.png"]{clip-path:inset(0 0 0 calc(300% / 1276))}
 
@@ -724,7 +724,7 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 }
 .full-page .publication-action:disabled{opacity:1;cursor:default}
 .full-page .publication-action:disabled:hover{filter:none}
-.full-page .aggregation-block>.caption{max-width:880px;margin-inline:auto}
+.full-page .aggregation-block>.caption{max-width:var(--media-width);margin-inline:auto}
 
 @media(max-width:599px){
   .full-page .publication-actions{gap:var(--space-2)}
