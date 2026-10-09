@@ -493,8 +493,9 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page .task-heading .instruction{
   font-size:var(--text-body-sm);line-height:1.5;color:var(--muted);
 }
-.full-page .aggregation-media{
-  margin-top:var(--space-5);border:1px solid var(--line);
+.full-page .aggregation-media{margin-top:var(--space-5)}
+.full-page .aggregation-panel{
+  border:1px solid var(--line);
   border-radius:var(--radius);overflow:hidden;background:white;
 }
 .full-page .aggregation-group-heading{
@@ -503,12 +504,11 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
   border:0;border-bottom:1px solid var(--line);background:var(--surface);text-align:center;
 }
 .full-page .aggregation-media .aggregation-grid{padding:var(--space-4)}
-.full-page .aggregation-media>.caption{
-  margin:0;padding:var(--space-3) var(--space-4);
-  border-top:1px solid var(--line);background:var(--surface);
+.full-page .aggregation-block>.caption{
+  margin:var(--space-3) auto 0;padding:0;
+  background:transparent;
   font-size:var(--text-caption);line-height:1.5;text-align:left;
 }
-.full-page .aggregation-media.media-group>.group-controls{margin:var(--space-4) auto;width:min(calc(100% - 32px),28rem)}
 .full-page .aggregation-group-heading>h4{
   margin:0;font-size:var(--text-media-title);font-weight:var(--weight-semibold);line-height:1.5;
 }
@@ -538,12 +538,16 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
   flex:0 1 12rem;margin:0;font-size:var(--text-meta);font-weight:var(--weight-medium);
   line-height:var(--leading-compact);color:var(--muted);
 }
-.full-page .result-comparisons{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-5) var(--space-6)}
+.full-page .result-comparisons{display:flex;align-items:stretch;gap:0}
 .full-page .result-comparison{
   display:grid;grid-template-columns:max-content 1rem max-content;
   justify-content:start;align-items:end;gap:var(--space-3);min-width:0;margin:0;
 }
-.full-page .result-comparison+.result-comparison{padding:0;border:0}
+.full-page .result-comparison{padding-block:var(--space-1)}
+.full-page .result-comparison+.result-comparison{
+  margin-left:var(--space-5);padding-left:var(--space-5);
+  border-left:1px solid var(--line-strong);
+}
 .full-page .result-before{grid-column:1;grid-row:1}
 .full-page .result-after{grid-column:3;grid-row:1}
 .full-page .result-comparison::after{
@@ -559,7 +563,11 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 }
 @media(max-width:599px){
   .full-page .result-summary{padding:var(--space-4);gap:var(--space-4)}
-  .full-page .result-comparisons{flex-direction:column;align-items:flex-start;gap:var(--space-4)}
+  .full-page .result-comparisons{width:100%;flex-direction:column;align-items:stretch;gap:0}
+  .full-page .result-comparison+.result-comparison{
+    margin:var(--space-4) 0 0;padding:var(--space-4) 0 0;
+    border-left:0;border-top:1px solid var(--line-strong);
+  }
 }
 .full-page .performance-table-heading{gap:var(--space-3);justify-content:space-between}
 .full-page .performance-table-heading .table-metric{margin-left:auto;text-align:right}
@@ -746,19 +754,19 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
   gap:var(--space-3);width:min(100%,24rem);margin-inline:auto;
 }
 .full-page .publication-item{
-  --publication-color:var(--accent);--publication-soft:#f1f5fc;--publication-line:#c7d6ec;
+  --publication-color:var(--accent);--publication-soft:var(--accent-soft);
   display:grid;justify-items:center;min-width:0;text-align:center;
 }
-.full-page .publication-item--paper{--publication-color:#a31b27;--publication-soft:#fcf1f3;--publication-line:#e8c8cf}
-.full-page .publication-item--code{--publication-color:#24292f;--publication-soft:#f2f4f7;--publication-line:var(--control-border)}
+.full-page .publication-item--paper{--publication-color:#a31b27;--publication-soft:#fae9ec}
+.full-page .publication-item--code{--publication-color:#24292f;--publication-soft:#e9edf1}
 .full-page .publication-actions .publication-action{
   display:flex;align-items:center;justify-content:center;flex-direction:row;
   gap:var(--space-2);width:100%;min-width:0;min-height:3rem;
   padding:var(--space-2);font-size:var(--text-body-sm);white-space:nowrap;
-  background:var(--publication-soft);border-color:var(--publication-line);color:var(--publication-color);
+  background:var(--publication-color);border-color:var(--publication-color);color:white;
   position:relative;z-index:1;
 }
-.full-page .publication-actions .publication-action:hover{background:var(--publication-soft);border-color:var(--publication-color);filter:brightness(.98);color:var(--publication-color)}
+.full-page .publication-actions .publication-action:hover{background:var(--publication-color);border-color:var(--publication-color);filter:brightness(1.12);color:white}
 .full-page .publication-icon{display:block;width:var(--control-icon-size);height:var(--control-icon-size);flex:none}
 .full-page .publication-status{
   width:calc(100% - var(--space-4));margin-top:-1px;
@@ -912,19 +920,18 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 
 /* The heading index, local outline and return link share one reading hierarchy. */
 .full-page{
-  --heading-index-width:2.25rem;
   --heading-index-gap:var(--space-3);
   --heading-index-font-size:1.375rem;
 }
 .full-page h2:has(>.heading-number){--heading-first-line-height:calc(var(--section-title) * 1.3)}
 .full-page h3:has(>.heading-number){--heading-first-line-height:calc(var(--subsection-title) * 1.3)}
 .full-page :is(h2,h3):has(>.heading-number){
-  grid-template-columns:var(--heading-index-width) minmax(0,1fr);
+  grid-template-columns:max-content minmax(0,1fr);
   align-items:start;
   column-gap:var(--heading-index-gap);
   line-height:1.3;
 }
-/* Both heading levels share the index and label columns; type size carries hierarchy. */
+/* Indices share a left edge; the label follows each index with the same gap. */
 .full-page :is(h2,h3):has(>.heading-number){
   padding-inline-start:0;
 }
@@ -932,7 +939,7 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
   display:flex;
   align-items:center;
   justify-content:flex-start;
-  width:100%;height:var(--heading-first-line-height);min-height:0;
+  width:max-content;height:var(--heading-first-line-height);min-height:0;
   margin:0;padding:0;text-align:left;
   font-family:var(--font-sans);
   font-size:var(--heading-index-font-size);
@@ -1045,7 +1052,7 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
   .full-page .back-to-top{right:var(--space-4)}
 }
 @media(max-width:599px){
-  .full-page{--heading-index-width:2.25rem;--heading-index-gap:var(--space-2);--heading-index-font-size:1.25rem}
+  .full-page{--heading-index-font-size:1.25rem}
 }
 
 /* Align values by column role, independently of the descriptive header's name. */
