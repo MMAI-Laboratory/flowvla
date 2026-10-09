@@ -16,6 +16,8 @@
     stop: '<rect x="6" y="6" width="12" height="12" rx="1" fill="currentColor" stroke="none"/>',
     restart: '<path d="M3 10a9 9 0 1 1 2.6 8.4M3 4v6h6"/>',
     expand: '<path d="M8 3H3v5M16 3h5v5M21 16v5h-5M8 21H3v-5"/>',
+    sound: '<path d="m11 5-6 4H2v6h3l6 4V5ZM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/>',
+    muted: '<path d="m11 5-6 4H2v6h3l6 4V5ZM16 9l6 6M22 9l-6 6"/>',
     loading: '<circle cx="12" cy="12" r="8" opacity=".2"/><path d="M12 4a8 8 0 0 1 8 8"/>'
   };
   const labelButton = (b, label) => { b.setAttribute('aria-label', label); b.title = label; };
@@ -36,7 +38,7 @@
     if (grouped) { const scope = node('span', 'control-scope', 'All'); scope.setAttribute('aria-hidden', 'true'); b.append(scope); }
     return b;
   };
-  function toolbar(prefix, title, grouped = false) {
+  function toolbar(prefix, title, grouped = false, withAudio = false) {
     const bar = node('div', `${prefix}-controls`); bar.setAttribute('role', 'group'); bar.setAttribute('aria-label', `${title} controls`);
     if (grouped) bar.append(node('span', 'group-label', title));
     const scope = grouped ? `all videos in ${title}` : title;
@@ -45,6 +47,7 @@
     const time = node('output', `${prefix}-time`, '0:00 / --:--');
     const restart = button(`${prefix}-restart`, 'restart', `${grouped ? 'Replay' : 'Restart'} ${scope} from the beginning`, grouped);
     const enlarge = grouped ? null : button('player-expand', 'expand', `Enlarge ${title}`);
+    const mute = withAudio ? button('player-mute', 'sound', `Mute ${title}`) : null;
     const status = node('span', `${prefix}-status`); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
     let stop = null, timeline = null;
     if (grouped) {
@@ -55,9 +58,13 @@
       actions.append(play, stop, restart);
       timeline = node('div', 'group-timeline'); timeline.append(seek, time);
       bar.append(actions, timeline);
-    } else { bar.append(play, seek, time, restart, enlarge); }
+    } else {
+      bar.append(play, seek, time);
+      if (mute) bar.append(mute);
+      bar.append(restart, enlarge);
+    }
     bar.append(status);
-    return { bar, play, seek, time, restart, stop, timeline, enlarge, status };
+    return { bar, play, seek, time, restart, stop, timeline, enlarge, mute, status };
   }
   const status = (ui, text, loading = false) => { ui.status.textContent = text; ui.status.dataset.loading = String(loading); ui.bar.setAttribute('aria-busy', String(loading)); };
   const mediaURL = v => v.currentSrc || v.getAttribute('src') || v.dataset.src || $('source', v)?.getAttribute('src') || $('source', v)?.dataset.src;
@@ -85,6 +92,12 @@
     if (!s.seeking) s.ui.seek.value = d ? Math.min(1000, v.currentTime / d * 1000) : 0;
     s.ui.time.textContent = `${format(v.currentTime)} / ${d ? format(d) : '--:--'}`;
     s.ui.seek.setAttribute('aria-valuetext', `${format(v.currentTime)} of ${d ? format(d) : 'unknown duration'}`);
+    if (s.ui.mute) {
+      const hasAudio = v.id === 'overview-video' || (v === expanded && expandedSource?.id === 'overview-video');
+      s.ui.mute.hidden = !hasAudio;
+      s.ui.bar.classList.toggle('has-audio-controls', hasAudio);
+      if (hasAudio) buttonState(s.ui.mute, v.muted ? 'muted' : 'sound', `${v.muted ? 'Unmute' : 'Mute'} ${s.title}`);
+    }
     if (s.start) {
       const hidden = !v.paused || v.currentTime > 0 || s.pending;
       if (hidden && document.activeElement === s.start) s.ui.play.focus({ preventScroll: true });
@@ -205,7 +218,7 @@
   }
   videos.forEach(v => {
     const shell = v.closest('.media-shell') || v.parentElement, title = shell.dataset.title || v.getAttribute('aria-label') || 'video';
-    const ui = toolbar('player', title), s = { ui, title, start: $('.overview-start', shell), token: 0, pending: false, seeking: false };
+    const ui = toolbar('player', title, false, v.id === 'overview-video' || v === expanded), s = { ui, title, start: $('.overview-start', shell), token: 0, pending: false, seeking: false };
     states.set(v, s); v.controls = false; v.autoplay = false; v.removeAttribute('autoplay'); v.loop = false; v.playsInline = true;
     ui.context = node('span', 'player-group-context', 'Together'); ui.context.hidden = true;
     ui.bar.prepend(ui.context); shell.append(ui.bar);
@@ -216,8 +229,13 @@
     ui.play.addEventListener('click', togglePlayback);
     s.start?.addEventListener('click', togglePlayback);
     ui.restart.addEventListener('click', () => playOne(v, true));
+    ui.mute?.addEventListener('click', () => {
+      v.muted = !v.muted;
+      if (v === expanded && expandedSource?.id === 'overview-video') expandedSource.muted = v.muted;
+      updateVideo(v);
+    });
     wireSeek(ui, s, ratio => seekOne(v, ratio), () => !v.paused || s.pending, () => playOne(v));
-    ['loadedmetadata', 'durationchange', 'timeupdate', 'play', 'pause', 'ended', 'seeked'].forEach(event => v.addEventListener(event, () => { updateVideo(v); const g = membership.get(v); if (g) updateGroup(g); }));
+    ['loadedmetadata', 'durationchange', 'timeupdate', 'play', 'pause', 'ended', 'seeked', 'volumechange'].forEach(event => v.addEventListener(event, () => { updateVideo(v); const g = membership.get(v); if (g) updateGroup(g); }));
     v.addEventListener('waiting', () => { const g = membership.get(v); if (!v.paused) status(g?.coordinated ? g.ui : ui, 'Buffering…', true); });
     v.addEventListener('playing', () => { const g = membership.get(v); status(g?.coordinated ? g.ui : ui, ''); });
     v.addEventListener('error', () => {
@@ -402,8 +420,10 @@
   const updateNav = () => {
     navQueued = false;
     const headerBottom = $('.site-header')?.getBoundingClientRect().bottom || 0;
-    const scrollPadding = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
-    const readingLine = Math.min(innerHeight - 1, Math.max(80, headerBottom + 40, scrollPadding + 24));
+    // Follow the content being read in the upper third of the usable viewport,
+    // rather than leaving the previous subsection active until its next heading
+    // is almost hidden under the sticky header.
+    const readingLine = Math.min(innerHeight - 1, headerBottom + Math.max(40, (innerHeight - headerBottom) / 3));
     const sections = sectionRecords.filter(record => visibleTarget(record.target))
       .map(record => ({ ...record, rect: record.target.getBoundingClientRect() }));
     const atEnd = scrollY > 0 && Math.ceil(scrollY + innerHeight) >= document.documentElement.scrollHeight - 2;
@@ -420,6 +440,7 @@
       const containing = candidates.filter(record => record.rect.bottom > readingLine);
       currentTarget = (containing[containing.length - 1] || candidates[candidates.length - 1])?.target || currentTarget;
     }
+    if (inHero) { currentSection = null; currentTarget = null; }
     const sectionId = currentSection?.target.id;
     const currentHeaderSection = headerRecords.find(record => isMainLink(record) && record.target === currentSection?.target);
     const currentHeader = headerRecords.find(record => record.target === currentTarget) || currentHeaderSection;
@@ -434,8 +455,8 @@
       previousHeaderLink = currentHeader?.link;
       if (nav?.classList.contains('is-open')) queueNavReveal(nav, previousHeaderLink);
     }
-    const locationLink = inHero || !currentSection ? headerRecords.find(isMainLink)?.link : currentHeader?.link;
-    if (navLocation) navLocation.textContent = (locationLink?.dataset.location || locationLink?.textContent || '').trim();
+    const locationLink = currentHeader?.link;
+    if (navLocation) navLocation.textContent = inHero ? 'FlowVLA' : (locationLink?.dataset.location || locationLink?.textContent || '').trim();
     if (backToTop) {
       const visible = scrollY >= 500;
       backToTop.classList.toggle('is-visible', visible); backToTop.hidden = !visible; backToTop.inert = !visible;

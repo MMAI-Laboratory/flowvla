@@ -214,9 +214,24 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .responsive-figure .rf-crop{display:block;position:relative;overflow:hidden;aspect-ratio:var(--rf-ratio);min-width:0;background:white}
 .responsive-figure .rf-crop>img{position:absolute;inset:auto;left:var(--rf-image-left);top:var(--rf-image-top);width:var(--rf-image-width);max-width:none;height:auto}
 .responsive-figure .rf-figure-instruction{padding:12px 12px 4px;color:var(--ink);font-size:var(--text-meta);line-height:1.5;text-align:left}
-.full-page .responsive-figure>.rf-figure-footer{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2) var(--space-4)}
-.responsive-figure .rf-caption-text{flex:1 1 24rem;min-width:0}
-.responsive-figure .rf-figure-source{flex:0 0 auto;margin-left:auto;white-space:nowrap;font-size:var(--text-meta);font-weight:var(--weight-medium);line-height:1.5}
+/* Descriptive captions stay attached to their figure; provenance follows below. */
+.full-page .research-figure>.rf-figure-footer{
+  display:block;margin:0;padding:0;border:0;border-radius:0;background:transparent;
+}
+.research-figure .rf-caption-text{
+  display:block;min-width:0;padding:var(--media-inset);
+  border:1px solid var(--line);border-top:0;border-radius:0 0 var(--radius) var(--radius);
+  background:var(--soft);font-size:var(--text-caption);line-height:1.5;
+}
+.research-figure .rf-source-row{
+  display:flex;align-items:center;padding:var(--space-3) 0;
+  font:var(--weight-regular) var(--text-meta)/1.5 var(--font-sans);text-align:left;
+}
+.research-figure .rf-figure-source{
+  display:inline-flex;align-items:center;gap:var(--space-1);margin:0;
+  white-space:nowrap;font:inherit;font-weight:var(--weight-medium);
+}
+.research-figure .rf-figure-source>span{font:inherit;line-height:inherit}
 .rf-reconstruction-sheet:hover{text-decoration:none}
 .rf-reconstruction-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:12px;align-items:center}
 .rf-reconstruction-grid>.rf-crop{width:100%}
@@ -291,7 +306,11 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page .table-footer .table-note{margin-top:4px}
 .full-page .table-provenance{column-gap:5px}
 .full-page .table-source-label{font-weight:var(--weight-medium)}
-.full-page .table-scroll-hint{padding:6px var(--evidence-inset)}
+.full-page .table-block>.table-scroll-hint,
+.full-page .performance-results>.performance-scroll-hint{
+  margin:0 0 var(--space-1);padding:0;border:0;background:transparent;
+  color:var(--muted);font-size:var(--text-meta);line-height:1.5;text-align:right;
+}
 .full-page .benchmark-table{min-width:40rem}
 .full-page .benchmark-table th,.full-page .benchmark-table td{padding:var(--cell-block) var(--cell-inline)}
 .full-page .benchmark-table th:first-child{padding-left:var(--evidence-inset);position:sticky;left:0;z-index:1;box-shadow:1px 0 var(--line)}
@@ -354,9 +373,21 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 
 /* Maintain readable labels and internal scrolling on narrow screens. */
 @media(max-width:599px){
-  .full-page .benchmark-table th:first-child{width:10.75rem;min-width:10.75rem;max-width:10.75rem}
+  /* Preserve two complete numeric columns beside the pinned method at 320 px. */
+  .full-page .benchmark-table{table-layout:fixed;min-width:31.5rem;width:100%}
+  .full-page .benchmark-table th:first-child{width:9rem;min-width:9rem;max-width:9rem}
+  .full-page .benchmark-table :is(th,td).numeric-column{width:4.5rem;min-width:4.5rem;padding-inline:var(--space-2)}
+  .full-page #libero-plus .benchmark-table{min-width:46.5rem}
+  .full-page #libero-plus .benchmark-table :is(th,td):nth-child(4){width:5rem}
+  .full-page #libero-plus .benchmark-table :is(th,td):nth-child(6){width:5.5rem}
   .full-page .method-venue{margin-top:1px}
   .full-page .table-caption{padding-inline:var(--evidence-inset)}
+}
+@media(max-width:359px){
+  /* A classic scrollbar can leave only 273 px of table viewport at 320 px. */
+  .full-page .benchmark-table{min-width:30.5rem}
+  .full-page .benchmark-table th:first-child{width:8rem;min-width:8rem;max-width:8rem}
+  .full-page #libero-plus .benchmark-table{min-width:45.5rem}
 }
 
 .full-page .efficiency-note{margin-top:12px;padding:0 var(--evidence-inset);text-align:left;hyphens:none}
@@ -462,10 +493,22 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page .task-heading .instruction{
   font-size:var(--text-body-sm);line-height:1.5;color:var(--muted);
 }
-.full-page .aggregation-group-heading{
-  margin:var(--space-5) 0 var(--space-4);padding:0;
-  border:0;text-align:left;
+.full-page .aggregation-media{
+  margin-top:var(--space-5);border:1px solid var(--line);
+  border-radius:var(--radius);overflow:hidden;background:white;
 }
+.full-page .aggregation-group-heading{
+  display:flex;align-items:center;justify-content:center;min-height:3rem;
+  margin:0;padding:var(--media-inset) var(--space-4);
+  border:0;border-bottom:1px solid var(--line);background:var(--surface);text-align:center;
+}
+.full-page .aggregation-media .aggregation-grid{padding:var(--space-4)}
+.full-page .aggregation-media>.caption{
+  margin:0;padding:var(--space-3) var(--space-4);
+  border-top:1px solid var(--line);background:var(--surface);
+  font-size:var(--text-caption);line-height:1.5;text-align:left;
+}
+.full-page .aggregation-media.media-group>.group-controls{margin:var(--space-4) auto;width:min(calc(100% - 32px),28rem)}
 .full-page .aggregation-group-heading>h4{
   margin:0;font-size:var(--text-media-title);font-weight:var(--weight-semibold);line-height:1.5;
 }
@@ -550,38 +593,38 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 @media(max-width:599px){
   .full-page .media-gallery[data-gallery]>.choices button{padding-inline:var(--space-3)}
   .full-page .media-gallery[data-gallery="reconstruction-examples"]>.choices{
-    width:max-content;flex-direction:column;align-items:stretch;
+    width:100%;flex-direction:column;align-items:stretch;
   }
 }
 
-/* Experiment selection, instructions, and media share the same horizontal extent. */
-.full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices{
+/* All gallery choices share one connected selection primitive and their media width. */
+.full-page .media-gallery[data-gallery]>.choices{
   width:100%;max-width:var(--media-width);
   gap:0;flex-wrap:nowrap;margin-bottom:var(--space-4);
   border:1px solid var(--line-strong);background:white;
 }
-.full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button{
+.full-page .media-gallery[data-gallery]>.choices button{
   position:relative;display:flex;align-items:center;justify-content:center;
   flex:1 1 0;min-width:0;padding:var(--space-3) var(--space-4);
   border:0;border-radius:0;background:white;color:var(--muted);
   font-weight:var(--weight-semibold);
 }
-.full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button+button{
+.full-page .media-gallery[data-gallery]>.choices button+button{
   border-left:1px solid var(--line);
 }
-.full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button::after{
+.full-page .media-gallery[data-gallery]>.choices button::after{
   content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:transparent;
 }
-.full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button:hover{
+.full-page .media-gallery[data-gallery]>.choices button:hover{
   background:var(--soft);color:var(--ink);
 }
-.full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button[aria-pressed="true"]{
+.full-page .media-gallery[data-gallery]>.choices button[aria-pressed="true"]{
   background:var(--accent-soft);color:var(--accent);
 }
-.full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button[aria-pressed="true"]::after{
+.full-page .media-gallery[data-gallery]>.choices button[aria-pressed="true"]::after{
   background:var(--accent);
 }
-.full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button:focus-visible{
+.full-page .media-gallery[data-gallery]>.choices button:focus-visible{
   outline-offset:-3px;z-index:1;
 }
 @media(max-width:799px){
@@ -591,15 +634,17 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
   .js .full-page .media-gallery[data-gallery="real-world"]>.choices.js-only{
     display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;
   }
-  .full-page .media-gallery:is([data-gallery="real-world"],[data-gallery="variations"])>.choices button{
+  .full-page .media-gallery[data-gallery]>.choices button{
     min-width:0;padding-inline:var(--space-3);
   }
   .full-page .media-gallery[data-gallery="real-world"]>.choices button:nth-child(odd){border-left:0}
   .full-page .media-gallery[data-gallery="real-world"]>.choices button:nth-child(n+3){border-top:1px solid var(--line)}
   .full-page .media-gallery[data-gallery="real-world"]>.choices button:last-child:nth-child(odd){grid-column:1/-1}
-  .full-page .media-gallery[data-gallery="variations"]>.choices{flex-direction:column}
-  .full-page .media-gallery[data-gallery="variations"]>.choices button+button{border-left:0;border-top:1px solid var(--line)}
+  .full-page .media-gallery:is([data-gallery="variations"],[data-gallery="reconstruction-examples"])>.choices{flex-direction:column}
+  .full-page .media-gallery:is([data-gallery="variations"],[data-gallery="reconstruction-examples"])>.choices button+button{border-left:0;border-top:1px solid var(--line)}
 }
+
+.full-page .media-gallery[data-gallery="reconstruction-examples"]>.choices{max-width:none}
 
 /* A shared display frame, independent of each source video's dimensions. */
 .full-page{
@@ -789,14 +834,17 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 
 /* Shared playback has one primary action and two familiar secondary icons. */
 .full-page .media-group>.group-controls{
-  display:grid;grid-template-columns:minmax(0,1fr) 14rem minmax(0,1fr);
+  display:grid;grid-template-columns:minmax(0,1fr);
   grid-template-rows:var(--control-height);align-items:center;
-  gap:var(--space-3);width:100%;margin:var(--space-4) auto 0;
+  gap:var(--space-2);width:min(100%,28rem);margin:var(--space-4) auto 0;
   padding:0;border:0;border-radius:0;background:transparent;
+}
+.full-page .media-group>.group-controls[data-mode="together"]{
+  grid-template-rows:var(--control-height) var(--control-height);
 }
 .full-page .group-controls .group-actions{
   display:grid;grid-template-columns:7.5rem var(--control-height) var(--control-height);
-  grid-column:2;grid-row:1;width:14rem;margin:0;gap:var(--space-2);
+  grid-column:1;grid-row:1;width:14rem;margin:0 auto;gap:var(--space-2);
   border:0;border-radius:0;background:transparent;
 }
 .full-page .group-controls .group-actions .media-action{
@@ -814,20 +862,11 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 .full-page .group-controls .group-actions :is(.group-stop,.group-restart):active{background:var(--transport-active)}
 .full-page .group-controls .group-actions :is(.group-stop,.group-restart) .control-scope{display:none}
 .full-page .group-controls .group-timeline{
-  display:grid;grid-template-columns:minmax(0,1fr) auto;grid-column:3;grid-row:1;
+  display:grid;grid-template-columns:minmax(0,1fr) auto;grid-column:1;grid-row:2;
   align-items:center;gap:var(--space-2);padding:0;border:0;min-width:0;width:100%;
 }
 .full-page .group-controls .group-timeline>*{grid-column:auto;grid-row:auto}
-.full-page .group-controls .group-status{padding:0;grid-column:1/-1;grid-row:2}
-@container (max-width:759px){
-  .full-page .media-group>.group-controls{
-    grid-template-columns:minmax(0,1fr);grid-template-rows:var(--control-height) var(--control-height);
-    gap:var(--space-2);width:min(100%,360px);
-  }
-  .full-page .group-controls .group-actions{grid-column:1;grid-row:1;width:14rem;margin-inline:auto}
-  .full-page .group-controls .group-timeline{grid-column:1;grid-row:2}
-  .full-page .group-controls .group-status{grid-row:3}
-}
+.full-page .group-controls .group-status{padding:0;grid-column:1;grid-row:auto}
 @container (max-width:359px){
   .full-page .group-controls .group-actions .media-action{gap:var(--space-1);padding-inline:var(--space-1)}
 }
@@ -837,6 +876,34 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
     gap:var(--space-1);padding:var(--space-2) var(--space-1);
   }
   .full-page .player-controls.is-coordinated{grid-template-columns:minmax(0,1fr) var(--control-height)}
+}
+
+/* Narrated overview videos add sound control without squeezing the seek bar. */
+.full-page .player-controls.has-audio-controls{
+  grid-template-columns:var(--control-height) minmax(2rem,1fr) auto repeat(3,var(--control-height));
+  grid-template-areas:"play seek time mute restart expand";
+}
+.full-page #video-dialog .player-controls.has-audio-controls{
+  grid-template-columns:var(--control-height) minmax(2rem,1fr) auto repeat(2,var(--control-height));
+  grid-template-areas:"play seek time mute restart";
+}
+.full-page .has-audio-controls .player-play{grid-area:play}
+.full-page .has-audio-controls .player-seek{grid-area:seek}
+.full-page .has-audio-controls .player-time{grid-area:time}
+.full-page .has-audio-controls .player-mute{grid-area:mute}
+.full-page .has-audio-controls .player-restart{grid-area:restart}
+.full-page .has-audio-controls .player-expand{grid-area:expand}
+@container player-shell (max-width:479px){
+  .full-page .player-controls.has-audio-controls{
+    grid-template-columns:var(--control-height) minmax(0,1fr) repeat(3,var(--control-height));
+    grid-template-areas:"seek seek seek seek seek" "play time mute restart expand";
+    gap:var(--space-1);
+  }
+  .full-page #video-dialog .player-controls.has-audio-controls{
+    grid-template-columns:var(--control-height) minmax(0,1fr) repeat(2,var(--control-height));
+    grid-template-areas:"seek seek seek seek" "play time mute restart";
+  }
+  .full-page .has-audio-controls .player-time{justify-self:start}
 }
 @media(prefers-reduced-motion:reduce){
   .full-page :is(.player-controls,.group-controls) .media-action{transition:none}
@@ -967,7 +1034,15 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
   }
 }
 @media(max-width:899px){
-  .full-page .back-to-top{right:var(--space-4);bottom:var(--space-4)}
+  /* Keep this action inside the header's reserved space, clear of media controls. */
+  .full-page .header-inner{padding-inline-end:calc(var(--control-height) + var(--space-3))}
+  .full-page .back-to-top{
+    top:9px;right:var(--space-5);bottom:auto;
+    z-index:21;
+  }
+}
+@media(max-width:600px){
+  .full-page .back-to-top{right:var(--space-4)}
 }
 @media(max-width:599px){
   .full-page{--heading-index-width:2.25rem;--heading-index-gap:var(--space-2);--heading-index-font-size:1.25rem}
