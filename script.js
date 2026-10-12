@@ -384,6 +384,7 @@
       if (!choice) return false; select(choice); return true;
     };
     const alignHeadings = () => {
+      if (gallery.dataset.gallery === 'variations') return;
       const headings = panels.map(p => $('.task-heading', p)).filter(Boolean);
       gallery.style.removeProperty('--task-heading-height');
       if (headings.length) gallery.style.setProperty('--task-heading-height', `${Math.ceil(Math.max(...headings.map(h => h.getBoundingClientRect().height)))}px`);
