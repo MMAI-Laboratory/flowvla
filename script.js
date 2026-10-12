@@ -5,10 +5,10 @@
   const videos = [...new Set($$('.media-shell video, #overview-video'))];
   const states = new WeakMap(), membership = new WeakMap();
   const groups = [], dialog = $('#video-dialog'), expanded = $('#expanded-video'), dialogContext = $('#dialog-context');
-  let opener = null, expandedSource = null, expandedSession = null;
+  let opener = null, expandedSource = null, expandedSession = null, pairDialog = null, pairSession = null;
   const duration = v => Number.isFinite(v.duration) ? v.duration : Number(v.dataset.duration) || 0;
   const format = n => Number.isFinite(n) ? `${Math.floor(Math.max(0, n) / 60)}:${String(Math.floor(Math.max(0, n) % 60)).padStart(2, '0')}` : '--:--';
-  const available = v => !$('#figure-dialog')?.open && !v.closest('[hidden]') && !document.hidden && (v === expanded ? dialog?.open : !dialog?.open);
+  const available = v => !$('#figure-dialog')?.open && !v.closest('[hidden]') && !document.hidden && (pairDialog?.open ? pairDialog.contains(v) : v === expanded ? dialog?.open : !dialog?.open);
   const node = (tag, className, text) => { const n = document.createElement(tag); n.className = className; if (text) n.textContent = text; return n; };
   const iconPaths = {
     play: '<path d="m9 5 11 7-11 7Z" fill="currentColor" stroke="none"/>',
@@ -69,10 +69,20 @@
   }
   const status = (ui, text, loading = false) => { ui.status.textContent = text; ui.status.dataset.loading = String(loading); ui.bar.setAttribute('aria-busy', String(loading)); };
   const mediaURL = v => v.currentSrc || v.getAttribute('src') || v.dataset.src || $('source', v)?.getAttribute('src') || $('source', v)?.dataset.src;
+  const originalURL = v => v === expanded && expandedSource ? originalURL(expandedSource) : v.dataset.src || $('source[data-src]', v)?.dataset.src || mediaURL(v);
+  const useLightMedia = () => matchMedia('(max-width: 800px)').matches || navigator.connection?.saveData || /^(slow-2g|2g|3g)$/.test(navigator.connection?.effectiveType || '');
+  function mediaError(ui, text, members) {
+    status(ui, text);
+    members.forEach(v => {
+      const href = originalURL(v); if (!href) return;
+      const link = node('a', 'video-original-link', `Open original MP4: ${states.get(v).title} ↗`);
+      link.href = href; link.target = '_blank'; link.rel = 'noopener'; ui.status.append(link);
+    });
+  }
   function hydrate(v, preload = 'metadata') {
     const first = !v.dataset.hydrated;
-    if (v.dataset.src && !v.getAttribute('src')) v.src = v.dataset.src;
-    $$('source[data-src]', v).forEach(source => { if (!source.getAttribute('src')) source.src = source.dataset.src; });
+    if (v.dataset.src && !v.getAttribute('src')) v.src = useLightMedia() && v.dataset.srcLow || v.dataset.src;
+    $$('source[data-src]', v).forEach(source => { if (!source.getAttribute('src')) source.src = useLightMedia() && source.dataset.srcLow || source.dataset.src; });
     v.dataset.hydrated = 'true';
     // Near-view metadata warms the header, never overrides an intentional playback download.
     if (preload === 'auto' || v.preload !== 'auto') v.preload = preload;
@@ -135,6 +145,11 @@
     if (g.running) g.time = g.master.currentTime;
     g.token++; g.pending = false; g.running = false; g.videos.forEach(pauseOne); status(g.ui, ''); updateGroup(g);
   }
+  function pauseOtherMedia(current) {
+    const currentGroup = membership.get(current) || current;
+    groups.filter(g => g !== currentGroup && groupPlaying(g)).forEach(pauseGroup);
+    videos.filter(v => v !== current && !membership.has(v) && (!v.paused || states.get(v).pending)).forEach(pauseOne);
+  }
   function individualMode(g, focus = false) {
     pauseGroup(g); g.coordinated = false; updateGroup(g);
     if (focus) states.get(g.videos[0]).ui.play.focus({ preventScroll: true });
@@ -164,6 +179,7 @@
   }
   async function playOne(v, restart = false) {
     independent(v); const s = states.get(v); if (!available(v)) return;
+    pauseOtherMedia(v);
     if (v === expanded && expandedSession) expandedSession.changed = true;
     const token = ++s.token; s.pending = true; status(s.ui, 'Loading video…', true); updateVideo(v);
     try {
@@ -174,7 +190,7 @@
       if (token !== s.token) return;
       if (!available(v)) { v.pause(); return; }
       status(s.ui, '');
-    } catch (_) { if (token === s.token) status(s.ui, 'Unable to play. Press Play to retry.'); }
+    } catch (_) { if (token === s.token) mediaError(s.ui, 'Unable to play. Press Play to retry.', [v]); }
     finally { if (token === s.token) { s.pending = false; updateVideo(v); } }
   }
   async function seekOne(v, ratio) {
@@ -184,6 +200,8 @@
     catch (_) { if (token === s.token) status(s.ui, 'Unable to seek. Try again.'); return false; }
   }
   async function playGroup(g, restart = false) {
+    if (!g.videos.every(available)) return;
+    pauseOtherMedia(g);
     const wasCoordinated = g.coordinated;
     pauseGroup(g); const token = g.token;
     g.coordinated = true; g.pending = true; status(g.ui, 'Loading videos…', true); updateGroup(g);
@@ -202,7 +220,7 @@
       if (!g.videos.every(available)) { active.forEach(v => v.pause()); return; }
       g.running = true; status(g.ui, '');
     } catch (_) {
-      if (token === g.token) { g.videos.forEach(v => v.pause()); status(g.ui, 'Could not load every video. Retry Play all, or press Stop to play videos separately.'); }
+      if (token === g.token) { g.videos.forEach(v => v.pause()); mediaError(g.ui, 'Could not load every video. Retry Play all, or press Stop to play videos separately.', g.videos); }
     } finally { if (token === g.token) { g.pending = false; updateGroup(g); } }
   }
   async function seekGroup(g, ratio) {
@@ -219,10 +237,42 @@
     ui.seek.addEventListener('input', () => { if (!state.seeking) resumeAfter = playing(); state.seeking = true; task = seek(Number(ui.seek.value) / 1000); });
     ui.seek.addEventListener('change', async () => { const current = task, resumeRequested = resumeAfter; const ok = await current; if (current !== task) return; state.seeking = false; if (ok && resumeRequested && Number(ui.seek.value) < 1000) resume(); });
   }
+  function enlargePair(g, trigger) {
+    groups.forEach(pauseGroup); videos.forEach(pauseOne);
+    if (!pairDialog) {
+      pairDialog = node('dialog', 'comparison-dialog'); pairDialog.id = 'comparison-dialog';
+      pairDialog.setAttribute('aria-labelledby', 'comparison-dialog-title');
+      const head = node('div', 'dialog-head'), title = node('h2', '', ''); title.id = 'comparison-dialog-title';
+      const close = node('button', 'button', 'Close ×'); close.type = 'button';
+      close.addEventListener('click', () => pairDialog.close()); head.append(title, close); pairDialog.append(head); document.body.append(pairDialog);
+      pairDialog.addEventListener('click', e => {
+        if (e.target !== pairDialog) return;
+        const r = pairDialog.getBoundingClientRect();
+        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) pairDialog.close();
+      });
+      pairDialog.addEventListener('close', () => {
+        if (!pairSession) return;
+        const { group, placeholder, opener } = pairSession;
+        pauseGroup(group); placeholder.replaceWith(group.root);
+        group.videos.forEach(v => { states.get(v).ui.enlarge.hidden = false; });
+        pairSession = null; opener.focus({ preventScroll: true });
+      });
+    }
+    const placeholder = node('div', 'comparison-placeholder');
+    placeholder.style.height = `${g.root.getBoundingClientRect().height}px`;
+    g.root.before(placeholder); pairSession = { group: g, placeholder, opener: trigger };
+    $('#comparison-dialog-title', pairDialog).textContent = g.label;
+    g.videos.forEach(v => { states.get(v).ui.enlarge.hidden = true; });
+    pairDialog.append(g.root); pairDialog.showModal();
+  }
   videos.forEach(v => {
     const shell = v.closest('.media-shell') || v.parentElement, title = shell.dataset.title || v.getAttribute('aria-label') || 'video';
     const ui = toolbar('player', title, false, v.id === 'overview-video' || v === expanded), s = { ui, title, start: $('.overview-start', shell), token: 0, pending: false, seeking: false };
     states.set(v, s); v.controls = false; v.autoplay = false; v.removeAttribute('autoplay'); v.loop = false; v.playsInline = true;
+    // The named shell and custom controls expose this player. Keeping the native
+    // media node out of the AX tree avoids browsers announcing an unloaded source as failed.
+    shell.setAttribute('role', 'group'); shell.setAttribute('aria-label', title);
+    v.setAttribute('aria-hidden', 'true'); v.setAttribute('tabindex', '-1');
     ui.context = node('span', 'player-group-context', 'Together'); ui.context.hidden = true;
     ui.bar.prepend(ui.context); shell.append(ui.bar);
     if (v !== expanded) mediaObserver?.observe(v);
@@ -239,16 +289,25 @@
     });
     wireSeek(ui, s, ratio => seekOne(v, ratio), () => !v.paused || s.pending, () => playOne(v));
     ['loadedmetadata', 'durationchange', 'timeupdate', 'play', 'pause', 'ended', 'seeked', 'volumechange'].forEach(event => v.addEventListener(event, () => { updateVideo(v); const g = membership.get(v); if (g) updateGroup(g); }));
-    v.addEventListener('waiting', () => { const g = membership.get(v); if (!v.paused) status(g?.coordinated ? g.ui : ui, 'Buffering…', true); });
-    v.addEventListener('playing', () => { const g = membership.get(v); status(g?.coordinated ? g.ui : ui, ''); });
-    v.addEventListener('error', () => {
+    v.addEventListener('waiting', () => {
       const g = membership.get(v);
-      if (g?.coordinated) { if (!g.pending) { pauseGroup(g); status(g.ui, 'A video could not load. Retry Play all, or press Stop to play videos separately.'); } return; }
-      if (!s.pending && v.dataset.hydrated) status(ui, 'Unable to load video. Press Play to retry.');
+      if (g?.coordinated && g.running && !g.pending) {
+        // Hold every member at the shared clock until all can continue.
+        playGroup(g); status(g.ui, 'Buffering videos…', true);
+      } else if (!v.paused && !g?.coordinated) status(ui, 'Buffering…', true);
     });
+    v.addEventListener('playing', () => { const g = membership.get(v); if (!g?.pending) status(g?.coordinated ? g.ui : ui, ''); });
+    const reportMediaError = () => {
+      const g = membership.get(v);
+      if (g?.coordinated) { if (!g.pending) { pauseGroup(g); mediaError(g.ui, 'A video could not load. Retry Play all, or press Stop to play videos separately.', g.videos); } return; }
+      if (!s.pending && v.dataset.hydrated) mediaError(ui, 'Unable to load video. Press Play to retry.', [v]);
+    };
+    v.addEventListener('error', reportMediaError); $$('source', v).forEach(source => source.addEventListener('error', reportMediaError));
     ui.enlarge.hidden = v === expanded || !dialog || !expanded;
     ui.enlarge.addEventListener('click', () => {
       if (!dialog || !expanded) return;
+      const pair = membership.get(v);
+      if (pair?.videos.length === 2 && $('.comparison-pair:not(.single)', pair.root)) { enlargePair(pair, ui.enlarge); return; }
       opener = ui.enlarge; expandedSource = v; groups.forEach(pauseGroup); videos.forEach(pauseOne);
       $('#dialog-title').textContent = title; expanded.muted = v.muted; expanded.volume = v.volume; expanded.loop = false;
       if (dialogContext) {
@@ -275,6 +334,7 @@
       const expandedState = states.get(expanded);
       expandedState.title = title; expanded.dataset.duration = duration(v); expanded.poster = v.poster;
       expanded.controls = false; expanded.setAttribute('aria-label', title);
+      expanded.closest('.media-shell').setAttribute('aria-label', title);
       expandedState.ui.bar.setAttribute('aria-label', `${title} controls`);
       expandedState.ui.seek.setAttribute('aria-label', `Seek enlarged ${title}`);
       labelButton(expandedState.ui.restart, `Restart enlarged ${title} from the beginning`);
@@ -289,15 +349,35 @@
     const label = root.dataset.groupLabel || 'Videos', ui = toolbar('group', label, true);
     const g = { root, videos: members, ui, label, token: 0, time: 0, pending: false, running: false, coordinated: false, seeking: false, master: members[0], sync: members.every(v => v.dataset.sync === 'aggregation') };
     groups.push(g); members.forEach(v => membership.set(v, g)); root.append(ui.bar);
+    if (members.length === 2 && $('.comparison-pair:not(.single)', root)) members.forEach(v => labelButton(states.get(v).ui.enlarge, `Enlarge both videos: ${label}`));
     ui.stop.addEventListener('click', () => stopGroup(g));
     ui.play.addEventListener('click', () => g.coordinated && groupPlaying(g) ? pauseGroup(g) : playGroup(g)); ui.restart.addEventListener('click', () => playGroup(g, true));
     wireSeek(ui, g, ratio => seekGroup(g, ratio), () => groupPlaying(g), () => playGroup(g)); updateGroup(g);
   });
   $$('.media-gallery[data-gallery]').forEach(gallery => {
     const choices = $$('[data-choice]', gallery), panels = $$('[data-panel]', gallery);
-    const select = choice => {
-      choices.forEach(b => { const selected = b === choice; b.setAttribute('aria-pressed', String(selected)); b.classList.toggle('is-active', selected); });
+    const tablist = $('.choices', gallery); tablist.setAttribute('role', 'tablist');
+    choices.forEach(b => {
+      b.id ||= `${gallery.dataset.gallery}-tab-${b.dataset.choice}`;
+      b.setAttribute('role', 'tab');
+      const panel = panels.find(p => p.dataset.panel === b.dataset.choice);
+      if (panel) { panel.setAttribute('role', 'tabpanel'); panel.setAttribute('aria-labelledby', b.id); panel.removeAttribute('aria-label'); panel.tabIndex = 0; }
+    });
+    const select = (choice, updateAddress = false) => {
+      choices.forEach(b => { const selected = b === choice; b.setAttribute('aria-selected', String(selected)); b.removeAttribute('aria-pressed'); b.tabIndex = selected ? 0 : -1; b.classList.toggle('is-active', selected); });
       panels.forEach(p => { p.hidden = p.dataset.panel !== choice.dataset.choice; p.inert = p.hidden; p.toggleAttribute('inert', p.hidden); p.setAttribute('aria-hidden', String(p.hidden)); if (p.hidden) { groups.filter(g => p.contains(g.videos[0])).forEach(g => individualMode(g)); $$('video', p).filter(v => states.has(v)).forEach(pauseOne); } else $$('video', p).forEach(warm); });
+      if (updateAddress) {
+        const panel = panels.find(p => p.dataset.panel === choice.dataset.choice), url = new URL(location.href);
+        url.hash = panel.id;
+        // A selection is state within this page, never an additional Back step.
+        history.replaceState(history.state, '', url);
+      }
+    };
+    const restoreSelection = () => {
+      let id; try { id = decodeURIComponent(location.hash.slice(1)); } catch (_) { return false; }
+      const panel = panels.find(p => p.id === id || p.contains(document.getElementById(id)));
+      const choice = panel && choices.find(b => b.dataset.choice === panel.dataset.panel);
+      if (!choice) return false; select(choice); return true;
     };
     const alignHeadings = () => {
       const headings = panels.map(p => $('.task-heading', p)).filter(Boolean);
@@ -312,9 +392,36 @@
     });
     resize.observe(gallery);
     alignHeadings();
-    choices.forEach(b => b.addEventListener('click', () => select(b))); if (choices.length) select(choices.find(b => b.getAttribute('aria-pressed') === 'true') || choices[0]);
+    choices.forEach((b, index) => {
+      b.addEventListener('click', () => select(b, true));
+      b.addEventListener('keydown', e => {
+        let next;
+        if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = choices.length - 1;
+        else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (index + 1) % choices.length;
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (index + choices.length - 1) % choices.length;
+        else return;
+        e.preventDefault(); select(choices[next], true); choices[next].focus({ preventScroll: true });
+      });
+    });
+    if (choices.length && !restoreSelection()) select(choices.find(b => b.getAttribute('aria-selected') === 'true' || b.getAttribute('aria-pressed') === 'true') || choices[0]);
+    window.addEventListener('hashchange', restoreSelection); window.addEventListener('popstate', restoreSelection);
   });
   if (!mediaObserver) videos.forEach(warm);
+  if ('IntersectionObserver' in window) {
+    const playbackObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) return;
+        const g = groups.find(group => group.root === entry.target);
+        if (g && groupPlaying(g)) pauseGroup(g);
+        else if (states.has(entry.target)) {
+          const v = entry.target, group = membership.get(v);
+          if (v !== expanded && !group?.coordinated && (!v.paused || states.get(v).pending)) pauseOne(v);
+        }
+      });
+    });
+    groups.forEach(g => playbackObserver.observe(g.root)); videos.filter(v => v !== expanded).forEach(v => playbackObserver.observe(v));
+  }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) videos.forEach(warm); });
   let lastSync = 0;
   const tick = time => {
@@ -389,17 +496,43 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && nav?.classList.contains('is-open')) { closeNav(); navToggle.focus(); } });
   document.addEventListener('click', e => { if (!e.target.closest('.site-header')) closeNav(); });
   const figureDialog = $('#figure-dialog'), figureViewer = $('.figure-viewer'), figureImage = $('#expanded-figure'), figureZoom = $('#figure-zoom');
-  let figureOpener;
+  let figureOpener, figureScale = null;
+  const figureScaleSelect = node('select', 'figure-scale'); figureScaleSelect.setAttribute('aria-label', 'Figure zoom');
+  ['Fit to screen', '100%', '150%', '200%', '300%'].forEach((label, index) => {
+    const option = node('option', '', label); option.value = index ? [1, 1.5, 2, 3][index - 1] : 'fit'; figureScaleSelect.append(option);
+  });
+  figureZoom?.before(figureScaleSelect);
+  function zoomFigure(scale = null) {
+    if (!figureImage?.naturalWidth) return;
+    const previousWidth = figureImage.getBoundingClientRect().width || 1;
+    const cx = (figureViewer.scrollLeft + figureViewer.clientWidth / 2) / previousWidth;
+    const cy = (figureViewer.scrollTop + figureViewer.clientHeight / 2) / previousWidth;
+    const fit = Math.min(1, figureViewer.clientWidth / figureImage.naturalWidth, parseFloat(getComputedStyle(figureViewer).maxHeight) / figureImage.naturalHeight);
+    figureScale = scale;
+    const width = figureImage.naturalWidth * (scale ?? fit);
+    figureImage.style.width = `${width}px`; figureImage.style.maxWidth = 'none';
+    figureScaleSelect.value = scale === null ? 'fit' : String(scale);
+    figureScaleSelect.options[0].textContent = `Fit (${Math.round(fit * 100)}%)`;
+    figureViewer.scrollLeft = Math.max(0, cx * width - figureViewer.clientWidth / 2);
+    figureViewer.scrollTop = Math.max(0, cy * width - figureViewer.clientHeight / 2);
+    figureZoom.textContent = 'Fit'; figureZoom.removeAttribute('aria-pressed');
+    figureZoom.setAttribute('aria-label', 'Fit figure to screen');
+  }
+  figureScaleSelect.addEventListener('change', () => zoomFigure(figureScaleSelect.value === 'fit' ? null : Number(figureScaleSelect.value)));
+  figureImage?.addEventListener('load', () => { if (figureDialog.open) { zoomFigure(null); figureViewer.scrollLeft = 0; figureViewer.scrollTop = 0; } });
+  if (figureViewer) new ResizeObserver(() => { if (figureDialog.open && figureScale === null) zoomFigure(null); }).observe(figureViewer);
+  $$('img').forEach(img => { img.draggable = false; });
+  document.addEventListener('dragstart', event => { if (event.target.closest?.('img, [data-figure-title]')) event.preventDefault(); });
   $$('[data-figure-title]').forEach(link => link.addEventListener('click', e => {
     if (!figureDialog || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault(); figureOpener = link; groups.forEach(pauseGroup); videos.forEach(pauseOne);
     $('#figure-dialog-title').textContent = link.dataset.figureTitle;
     $('#figure-dialog-caption').textContent = link.dataset.figureCaption;
     figureImage.src = link.href; figureImage.alt = link.dataset.figureTitle;
-    figureViewer.classList.remove('is-original'); figureZoom.setAttribute('aria-pressed', 'false'); figureZoom.textContent = 'Original size';
-    figureDialog.showModal(); figureViewer.scrollLeft = 0; figureViewer.scrollTop = 0;
+    figureViewer.classList.remove('is-original'); figureImage.style.removeProperty('width'); figureScale = null;
+    figureDialog.showModal(); zoomFigure(null); figureViewer.scrollLeft = 0; figureViewer.scrollTop = 0;
   }));
-  figureZoom?.addEventListener('click', () => { const original = figureViewer.classList.toggle('is-original'); figureZoom.setAttribute('aria-pressed', String(original)); figureZoom.textContent = original ? 'Fit to screen' : 'Original size'; });
+  figureZoom?.addEventListener('click', () => zoomFigure(null));
   $('#close-figure')?.addEventListener('click', () => figureDialog.close());
   figureDialog?.addEventListener('click', e => { if (e.target === figureDialog) { const r = figureDialog.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) figureDialog.close(); } });
   figureDialog?.addEventListener('close', () => figureOpener?.focus({ preventScroll: true }));
