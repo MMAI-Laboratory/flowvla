@@ -316,6 +316,10 @@
         const details = [clip && $('.clip-description', clip)?.textContent, instruction?.textContent, clip && $('.speed', clip)?.textContent]
           .map(text => (text || '').trim()).filter((text, index, parts) => text && text !== title && parts.indexOf(text) === index);
         dialogContext.textContent = v.dataset.context?.trim() || details.join(' · ');
+        if (v.closest('[data-media="aggregation-tcp"]')) {
+          const parts = dialogContext.textContent.split(/\b(black|red)\b/);
+          dialogContext.replaceChildren(...parts.map(part => /^(black|red)$/.test(part) ? node('strong', `trajectory-${part}`, part) : document.createTextNode(part)));
+        }
         dialogContext.hidden = !dialogContext.textContent;
       }
       const position = v.currentTime;
@@ -603,7 +607,17 @@
       if (nav?.classList.contains('is-open')) queueNavReveal(nav, previousHeaderLink);
     }
     const locationLink = currentHeader?.link;
-    if (navLocation) navLocation.textContent = inHero ? 'FlowVLA' : (locationLink?.dataset.location || locationLink?.textContent || '').trim();
+    if (navLocation) {
+      const location = inHero ? 'FlowVLA' : (locationLink?.dataset.location || locationLink?.textContent || '').trim();
+      if (navLocation.dataset.location !== location) {
+        navLocation.dataset.location = location;
+        const label = locationLink?.lastElementChild;
+        if (!inHero && label?.querySelector('.model-name')) {
+          const number = $('.outline-number', locationLink)?.textContent || '';
+          navLocation.replaceChildren(document.createTextNode(`${number} · `), ...[...label.childNodes].map(child => child.cloneNode(true)));
+        } else navLocation.textContent = location;
+      }
+    }
     if (backToTop) {
       const visible = scrollY >= 500;
       backToTop.classList.toggle('is-visible', visible); backToTop.hidden = !visible; backToTop.inert = !visible;

@@ -593,7 +593,7 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
   content:"→";grid-column:2;grid-row:1;align-self:end;margin-bottom:.2rem;
   color:var(--muted);text-align:center;font-size:var(--text-body);
 }
-.full-page .result-comparison dt{font-size:var(--text-meta);font-weight:var(--weight-medium);line-height:var(--leading-compact)}
+.full-page .result-comparison dt{font-size:var(--text-table);font-weight:var(--weight-medium);line-height:var(--leading-compact)}
 .full-page .result-comparison dd{margin:var(--space-1) 0 0;font-size:var(--text-result-value);font-weight:var(--weight-semibold);line-height:var(--leading-compact);font-variant-numeric:tabular-nums}
 .full-page .result-before dd{color:var(--muted)}
 .full-page .result-after dd{color:var(--result-ink)}
@@ -800,6 +800,7 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 }
 .full-page .publication-item--paper{--publication-color:#a31b27;--publication-soft:#fae9ec}
 .full-page .publication-item--code{--publication-color:#24292f;--publication-soft:#e9edf1}
+.full-page .publication-item--bibtex{--publication-color:#6b4b86;--publication-soft:#f1ecf5}
 .full-page .publication-actions .publication-action{
   display:flex;align-items:center;justify-content:center;flex-direction:row;
   gap:var(--space-2);width:100%;min-width:0;min-height:3rem;
@@ -1223,3 +1224,8 @@ h2:has(>.heading-number),h3:has(>.heading-number){display:grid;grid-template-col
 /* Semantic emphasis uses the established text color rather than a new accent. */
 .full-page .prose p strong,.full-page p.body-copy strong,
 .full-page .rf-caption-text strong{font-weight:700}
+
+.model-name{white-space:nowrap}
+.model-name sub{font-size:.75em;line-height:0;vertical-align:baseline;position:relative;bottom:-.25em}
+.full-page .trajectory-black{color:#111;font-weight:700}
+.full-page .trajectory-red{color:#b5232b;font-weight:700}
