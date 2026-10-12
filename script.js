@@ -6,6 +6,7 @@
   const states = new WeakMap(), membership = new WeakMap();
   const groups = [], dialog = $('#video-dialog'), expanded = $('#expanded-video'), dialogContext = $('#dialog-context');
   let opener = null, expandedSource = null, expandedSession = null, pairDialog = null, pairSession = null;
+  let playbackDockReady = false;
   const duration = v => Number.isFinite(v.duration) ? v.duration : Number(v.dataset.duration) || 0;
   const format = n => Number.isFinite(n) ? `${Math.floor(Math.max(0, n) / 60)}:${String(Math.floor(Math.max(0, n) % 60)).padStart(2, '0')}` : '--:--';
   const available = v => !$('#figure-dialog')?.open && !v.closest('[hidden]') && !document.hidden && (pairDialog?.open ? pairDialog.contains(v) : v === expanded ? dialog?.open : !dialog?.open);
@@ -139,6 +140,7 @@
     if (!g.seeking) g.ui.seek.value = d ? Math.min(1000, g.time / d * 1000) : 0;
     g.ui.time.textContent = `${format(g.time)} / ${d ? format(d) : '--:--'}`;
     g.ui.seek.setAttribute('aria-valuetext', `${format(g.time)} of ${d ? format(d) : 'unknown duration'}`);
+    if (playbackDockReady) queuePlaybackDock();
   }
   function pauseOne(v) { const s = states.get(v); s.token++; s.pending = false; v.pause(); status(s.ui, ''); updateVideo(v); }
   function pauseGroup(g) {
@@ -238,6 +240,7 @@
     ui.seek.addEventListener('change', async () => { const current = task, resumeRequested = resumeAfter; const ok = await current; if (current !== task) return; state.seeking = false; if (ok && resumeRequested && Number(ui.seek.value) < 1000) resume(); });
   }
   function enlargePair(g, trigger) {
+    restorePlaybackDock();
     groups.forEach(pauseGroup); videos.forEach(pauseOne);
     if (!pairDialog) {
       pairDialog = node('dialog', 'comparison-dialog'); pairDialog.id = 'comparison-dialog';
@@ -358,6 +361,66 @@
     ui.play.addEventListener('click', () => g.coordinated && groupPlaying(g) ? pauseGroup(g) : playGroup(g)); ui.restart.addEventListener('click', () => playGroup(g, true));
     wireSeek(ui, g, ratio => seekGroup(g, ratio), () => groupPlaying(g), () => playGroup(g)); updateGroup(g);
   });
+  // Mobile controls join the header edge after their inline row scrolls away.
+  // A body-level dock escapes the media containers' containment; the original
+  // row retains its exact height, so entering/leaving the dock cannot move clips.
+  const playbackDock = node('div', 'playback-dock');
+  playbackDock.hidden = true; document.body.append(playbackDock);
+  let dockedGroup = null, dockQueued = false;
+  function restorePlaybackDock() {
+    if (!dockedGroup) return;
+    const g = dockedGroup;
+    const focused = g.ui.bar.contains(document.activeElement) ? document.activeElement : null;
+    g.dockSlot.replaceWith(g.ui.bar); g.dockSlot = null;
+    g.ui.bar.classList.remove('is-docked');
+    dockedGroup = null; playbackDock.hidden = true;
+    document.documentElement.style.removeProperty('--playback-dock-height');
+    if (focused && document.activeElement !== focused) focused.focus({ preventScroll: true });
+  }
+  function updatePlaybackDock() {
+    dockQueued = false;
+    const header = $('.site-header'), headerBottom = header?.getBoundingClientRect().bottom || 0;
+    const blocked = !matchMedia('(max-width:899px)').matches || $('dialog[open]') || $('.main-nav.is-open');
+    const eligible = g => !g.root.closest('dialog,[hidden],[inert]') &&
+      getComputedStyle(g.root).visibility !== 'hidden' && getComputedStyle(g.root).flexDirection === 'column';
+    let next = null;
+    if (!blocked) next = groups.find(g => {
+      if (!eligible(g)) return false;
+      const anchor = (g.dockSlot || g.ui.bar).getBoundingClientRect();
+      const bottom = g.root.getBoundingClientRect().bottom;
+      return anchor.top <= headerBottom + 8 && bottom > headerBottom + g.ui.bar.getBoundingClientRect().height + 17;
+    }) || null;
+    if (dockedGroup !== next) {
+      restorePlaybackDock();
+      if (next) {
+        const bar = next.ui.bar, style = getComputedStyle(bar);
+        const focused = bar.contains(document.activeElement) ? document.activeElement : null;
+        next.dockSlot = node('div', 'group-control-slot');
+        next.dockSlot.setAttribute('aria-hidden', 'true');
+        next.dockSlot.style.margin = style.margin;
+        next.dockSlot.style.height = `${bar.getBoundingClientRect().height}px`;
+        bar.before(next.dockSlot); playbackDock.append(bar);
+        bar.classList.add('is-docked'); dockedGroup = next; playbackDock.hidden = false;
+        if (focused && document.activeElement !== focused) focused.focus({ preventScroll: true });
+      }
+    }
+    if (dockedGroup) {
+      playbackDock.style.top = `${headerBottom}px`;
+      playbackDock.style.width = `${header?.getBoundingClientRect().width || document.documentElement.clientWidth}px`;
+      playbackDock.style.setProperty('--docked-controls-width', `${Math.min(448, dockedGroup.root.clientWidth)}px`);
+      dockedGroup.dockSlot.style.height = `${dockedGroup.ui.bar.getBoundingClientRect().height}px`;
+      document.documentElement.style.setProperty('--playback-dock-height', `${playbackDock.getBoundingClientRect().height}px`);
+    }
+  }
+  function queuePlaybackDock() {
+    if (!dockQueued) { dockQueued = true; requestAnimationFrame(updatePlaybackDock); }
+  }
+  const dockResize = new ResizeObserver(queuePlaybackDock);
+  groups.forEach(g => { dockResize.observe(g.ui.bar); dockResize.observe(g.root); });
+  if ($('.site-header')) dockResize.observe($('.site-header'));
+  ['scroll', 'resize', 'hashchange', 'pageshow'].forEach(event => window.addEventListener(event, queuePlaybackDock, { passive: true }));
+  ['click', 'keydown', 'close', 'toggle'].forEach(event => document.addEventListener(event, queuePlaybackDock, true));
+  playbackDockReady = true; queuePlaybackDock();
   $$('.media-gallery[data-gallery]').forEach(gallery => {
     const choices = $$('[data-choice]', gallery), panels = $$('[data-panel]', gallery);
     const tablist = $('.choices', gallery); tablist.setAttribute('role', 'tablist');
@@ -475,6 +538,18 @@
     if (scroll.firstElementChild) resize.observe(scroll.firstElementChild);
     scroll.addEventListener('scroll', updateScroll, { passive: true }); updateScroll();
   });
+  // Consume trackpad horizontal gestures inside overflowing evidence, including
+  // at either end. Vertical page scrolling and pinch-to-zoom remain native.
+  $$('.table-scroll').forEach(scroll => {
+    scroll.addEventListener('wheel', event => {
+      if (event.ctrlKey || scroll.scrollWidth <= scroll.clientWidth + 1) return;
+      const horizontal = event.shiftKey && !event.deltaX ? event.deltaY : event.deltaX;
+      if (!horizontal || (!event.shiftKey && Math.abs(horizontal) <= Math.abs(event.deltaY))) return;
+      event.preventDefault();
+      const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? scroll.clientWidth : 1;
+      scroll.scrollLeft += horizontal * unit;
+    }, { passive: false });
+  });
   $('#copy-citation')?.addEventListener('click', async () => {
     const text = $('#bibtex').textContent.trim(), status = $('#copy-status');
     try { await navigator.clipboard.writeText(text); status.textContent = 'Citation copied.'; }
@@ -571,7 +646,8 @@
   let navQueued = false, previousHeaderLink = null, previousOutlineLink = null;
   const updateNav = () => {
     navQueued = false;
-    const headerBottom = $('.site-header')?.getBoundingClientRect().bottom || 0;
+    const headerBottom = Math.max($('.site-header')?.getBoundingClientRect().bottom || 0,
+      playbackDock.hidden ? 0 : playbackDock.getBoundingClientRect().bottom);
     // Follow the content being read in the upper third of the usable viewport,
     // rather than leaving the previous subsection active until its next heading
     // is almost hidden under the sticky header.
